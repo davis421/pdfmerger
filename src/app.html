@@ -21,6 +21,9 @@ ol.steps b{color:var(--text)}
 #drop:hover,#drop.over{border-color:var(--accent);background:var(--drop)}
 #drop strong{display:block;font-size:17px;margin-bottom:2px}
 #drop span{color:var(--muted);font-size:13px}
+.opt{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14px;color:var(--muted);cursor:pointer}
+.opt input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--accent)}
+.opt b{color:var(--text)}
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px}
 .toolbar .meta{color:var(--muted);font-size:13px}
 .group{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden}
@@ -103,6 +106,9 @@ details summary{cursor:pointer}
     <span>PDFs and photos (JPG, PNG). You can add more at any time.</span>
   </div>
   <input id="picker" type="file" multiple accept=".pdf,application/pdf,image/*" hidden>
+  <label class="opt"><input type="checkbox" id="autosort" checked>
+    <span><b>Sort automatically</b> — group files by tenant and put each tenant's documents in the usual order.
+    Turn off to keep files in the order you add them.</span></label>
 
   <div class="toolbar" id="toolbar" hidden>
     <span class="meta" id="summary"></span>
@@ -308,7 +314,12 @@ async function addFiles(list) {
     if (!f.error) await analyze(f);
     f.reading = false;
   }
-  autoGroup(added);
+  if (state.autoSort) autoGroup(added);
+  else {
+    // Keep the order the files were added, after anything already in the list
+    const base = filesOf(null).filter(f => !added.includes(f)).reduce((m, f) => Math.max(m, f.seq + 1), 0);
+    added.forEach((f, i) => { f.seq = base + i; });
+  }
   setStatus('');
   render();
 }
@@ -399,7 +410,9 @@ function groups() {
 }
 
 // ---------- rendering ----------
-Object.assign(state, { stage: 'files', pages: [], pagesSig: '' });
+Object.assign(state, { stage: 'files', pages: [], pagesSig: '', autoSort: true });
+try { state.autoSort = localStorage.getItem('autoSort') !== 'off'; } catch {}
+const looseLabel = () => state.autoSort ? 'Not assigned' : 'Your files';
 const SHORT = { id: 'ID photo', app: 'Application', screen: 'Screening', bank: 'Bank statement', income: 'Pay stub', other: 'Other' };
 const COLORS = ['#2457d6', '#c2410c', '#15803d', '#9333ea', '#be185d', '#0e7490', '#a16207'];
 const fileById = id => state.files.find(f => f.id === id);
@@ -430,7 +443,7 @@ function renderFiles() {
   gs.forEach((g, gi) => {
     const gp = g.files.reduce((s, f) => s + (f.error ? 0 : f.pages), 0);
     const head = h('div', { class: 'ghead' });
-    const sec = h('section', { class: 'group' + (g.tenant ? '' : ' unassigned') }, head);
+    const sec = h('section', { class: 'group' + (g.tenant || !state.autoSort ? '' : ' unassigned') }, head);
     if (g.tenant) {
       const grip = h('span', { class: 'grip', draggable: 'true', title: 'Drag to move this tenant' }, '⋮⋮');
       grip.addEventListener('dragstart', e => startDrag(e, { kind: 'tenant', t: g.tenant }, sec));
@@ -441,9 +454,10 @@ function renderFiles() {
         h('button', { class: 'icon', type: 'button', title: 'Move tenant up', 'aria-label': 'Move tenant up', disabled: gi === 0, onclick: () => moveTenant(gi, -1) }, '↑'),
         h('button', { class: 'icon', type: 'button', title: 'Move tenant down', 'aria-label': 'Move tenant down', disabled: gi === state.tenants.length - 1, onclick: () => moveTenant(gi, 1) }, '↓'));
     } else {
-      head.append(h('h2', {}, 'Not assigned to a tenant'), h('span', { class: 'meta' }, `· ${plural(g.files.length, 'file')}`));
+      head.append(h('h2', {}, state.autoSort ? 'Not assigned to a tenant' : 'Your files, in the order added'),
+        h('span', { class: 'meta' }, `· ${plural(g.files.length, 'file')}`));
     }
-    if (!g.tenant && g.files.some(f => !f.error)) sec.append(h('p', { class: 'hint' }, 'Choose a tenant for each of these, or drag them into a tenant. Anything left here goes at the end of the PDF.'));
+    if (!g.tenant && state.autoSort && g.files.some(f => !f.error)) sec.append(h('p', { class: 'hint' }, 'Choose a tenant for each of these, or drag them into a tenant. Anything left here goes at the end of the PDF.'));
     g.files.forEach((f, fi) => sec.append(row(f, fi, g.files)));
     // Dropping a file on a group (not on a row) adds it to the end; dropping a tenant reorders tenants
     sec.addEventListener('dragover', e => {
@@ -461,7 +475,7 @@ function renderFiles() {
     box.append(sec);
   });
   $('#next').disabled = !usable.length || state.files.some(f => f.reading);
-  if (state.files.some(f => f.tenant == null && !f.error && !f.reading)) setStatus(UNASSIGNED_HINT);
+  if (state.autoSort && state.files.some(f => f.tenant == null && !f.error && !f.reading)) setStatus(UNASSIGNED_HINT);
   else if ($('#status').textContent === UNASSIGNED_HINT) setStatus('');
 }
 const UNASSIGNED_HINT = 'Choose a tenant for each file in the "Not assigned" box.';
@@ -592,7 +606,7 @@ function renderPages() {
   const used = [...new Set(state.pages.map(p => fileById(p.fileId).tenant))];
   $('#legend').replaceChildren(
     h('span', {}, plural(state.pages.length, 'page')),
-    ...used.map(tid => { const s = h('span', { style: `--tc:${colorOf(tid)}` }, h('span', { class: 'dot' }), tid == null ? 'Not assigned' : tenantById(tid).name); return s; }));
+    ...used.map(tid => { const s = h('span', { style: `--tc:${colorOf(tid)}` }, h('span', { class: 'dot' }), tid == null ? looseLabel() : tenantById(tid).name); return s; }));
   const box = $('#pages');
   box.replaceChildren();
   const last = state.pages.length - 1;
@@ -602,7 +616,7 @@ function renderPages() {
     const src = f.kind === 'pdf' ? thumbCache.get(p.key) : f.thumb;
     const img = h('img', { alt: '', 'data-key': p.key, src: src || false });
     img.style.transform = `rotate(${p.turn}deg)`;
-    const cap = `${t ? t.name : 'Not assigned'} · ${SHORT[f.type]}${f.pages > 1 ? ` ${p.index + 1}/${f.pages}` : ''}`;
+    const cap = `${t ? t.name : looseLabel()} ·${SHORT[f.type]}${f.pages > 1 ? ` ${p.index + 1}/${f.pages}` : ''}`;
     const card = h('div', { class: 'page', draggable: 'true', style: `--tc:${colorOf(f.tenant)}` },
       h('div', { class: 'pthumb' }, img),
       h('div', { class: 'pnum' }, `Page ${i + 1}`),
@@ -802,6 +816,15 @@ window.addEventListener('drop', e => {
   }
 });
 $('#next').addEventListener('click', goPages);
+const autoBox = $('#autosort');
+autoBox.checked = state.autoSort;
+autoBox.addEventListener('change', () => {
+  state.autoSort = autoBox.checked;
+  try { localStorage.setItem('autoSort', state.autoSort ? 'on' : 'off'); } catch {}
+  // Turning sorting back on sorts the files that aren't in a tenant yet; turning it off moves nothing
+  if (state.autoSort) autoGroup(filesOf(null));
+  render();
+});
 $('#back').addEventListener('click', goFiles);
 $('#reset').addEventListener('click', () => { state.pages = proposedPages(); state.pagesSig = arrangementSig(); setStatus(''); render(); fillThumbs(); });
 $('#go').addEventListener('click', download);
