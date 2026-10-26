@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.ps1 text eol=crlf
+vendor/*.js -diff linguist-vendored
+public/index.html -diff linguist-generated

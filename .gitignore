@@ -1,0 +1,8 @@
+# Never commit tenant documents
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.heic
+.DS_Store
+Thumbs.db

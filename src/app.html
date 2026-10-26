@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tenant PDF Merger</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--text:#16181d;--muted:#606773;--line:#dfe2e7;--accent:#2457d6;--accent-ink:#fff;--warn:#8a4b00;--warn-bg:#fff4e0;--err:#b42318;--drop:#eef3ff}
+@media (prefers-color-scheme: dark){:root{--bg:#121417;--card:#1b1e23;--text:#e8eaed;--muted:#9aa1ab;--line:#2f343b;--accent:#7097ff;--accent-ink:#0b0d10;--warn:#f0b35a;--warn-bg:#2a2112;--err:#ff8a80;--drop:#1a2233}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 16px 150px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 18px}
+ol.steps{margin:0 0 18px;padding-left:20px;color:var(--muted);font-size:14px}
+ol.steps b{color:var(--text)}
+#drop{border:2px dashed var(--line);border-radius:12px;background:var(--card);padding:30px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+#drop:hover,#drop.over{border-color:var(--accent);background:var(--drop)}
+#drop strong{display:block;font-size:17px;margin-bottom:2px}
+#drop span{color:var(--muted);font-size:13px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px}
+.toolbar .meta{color:var(--muted);font-size:13px}
+.group{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden}
+.ghead{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.ghead .num{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px}
+.ghead h2{font-size:16px;margin:0}
+.ghead .meta{color:var(--muted);font-size:13px;flex:1}
+.group.unassigned{border-color:var(--warn)}
+.group.unassigned .ghead{background:var(--warn-bg)}
+.group.unassigned h2{color:var(--warn)}
+.hint{margin:0;padding:8px 12px;font-size:13px;color:var(--warn);border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px}
+.row+.row{border-top:1px solid var(--line)}
+.thumb{width:60px;height:60px;border:1px solid var(--line);border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#888;font-weight:700}
+.thumb img{max-width:100%;max-height:100%}
+.fname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:600}
+.fmeta{color:var(--muted);font-size:12px}
+.fmeta.err{color:var(--err)}
+.ctrls{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.side{display:flex;flex-direction:column;gap:4px}
+select,input[type=text]{font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);max-width:100%}
+button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:6px;padding:4px 8px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.35;cursor:default}
+.icon{width:30px;padding:3px 0;line-height:1.2}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar .in{max-width:860px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#status:empty{display:none}
+.bar input{flex:1;min-width:0;font-size:15px;padding:9px 10px}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:15px;padding:9px 18px;font-weight:600}
+#status{width:100%;font-size:13px;color:var(--muted);min-height:1.2em}
+#status.err{color:var(--err)}
+#status.ok{color:var(--text)}
+.empty{color:var(--muted);text-align:center;padding:18px 0;margin:0}
+details{margin-top:24px;color:var(--muted);font-size:13px}
+details summary{cursor:pointer}
+.row{grid-template-columns:auto 60px minmax(0,1fr) auto}
+.grip{cursor:grab;color:var(--muted);user-select:none;font-size:18px;line-height:1;padding:6px 2px;letter-spacing:-3px}
+.grip:hover{color:var(--accent)}
+.dragging{opacity:.4}
+.row.drop-before{box-shadow:inset 0 3px 0 var(--accent)}
+.row.drop-after{box-shadow:inset 0 -3px 0 var(--accent)}
+.group.drop-into{outline:2px solid var(--accent);outline-offset:-1px}
+.group.drop-before{box-shadow:0 -4px 0 var(--accent)}
+.group.drop-after{box-shadow:0 4px 0 var(--accent)}
+.barrow{display:flex;gap:8px;align-items:center;width:100%}
+.barrow .meta{flex:1;color:var(--muted);font-size:13px}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pagehead h2{font-size:18px;margin:0 0 2px}
+.pagehead p{margin:0;color:var(--muted);font-size:14px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--tc);margin-right:6px;vertical-align:-1px}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+.page{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--tc);border-radius:10px;padding:8px;cursor:grab;min-width:0}
+.pthumb{height:160px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:4px;overflow:hidden}
+.pthumb img{max-width:100%;max-height:100%}
+.pnum{font-weight:700;font-size:13px;margin-top:6px}
+.pcap{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbtns{display:flex;gap:4px;margin-top:6px}
+.pbtns button{flex:1;padding:3px 0}
+.page.drop-before{box-shadow:-5px 0 0 var(--accent)}
+.page.drop-after{box-shadow:5px 0 0 var(--accent)}
+@media (max-width:520px){.row{grid-template-columns:auto 48px minmax(0,1fr) auto}.thumb{width:48px;height:48px}.pages{grid-template-columns:repeat(2,minmax(0,1fr))}.pagehead{flex-direction:column}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Tenant PDF Merger</h1>
+  <p class="sub">Combine ID photos, application reports, screening reports and bank statements into one PDF. Everything happens on this computer, and nothing is uploaded.</p>
+  <section id="stage-files">
+  <ol class="steps">
+    <li><b>Add the files.</b> It groups them by tenant and puts them in order automatically.</li>
+    <li><b>Check the groups.</b> Choose a tenant for each ID photo. Drag the <b>⋮⋮</b> handle to move a file, even into another tenant, or to move a whole tenant.</li>
+    <li><b>Preview the pages.</b> See every page in its final order, rearrange, rotate or leave out pages, then download.</li>
+  </ol>
+
+  <div id="drop" tabindex="0" role="button" aria-label="Add files">
+    <strong>Drop files here, or click to choose</strong>
+    <span>PDFs and photos (JPG, PNG). You can add more at any time.</span>
+  </div>
+  <input id="picker" type="file" multiple accept=".pdf,application/pdf,image/*" hidden>
+
+  <div class="toolbar" id="toolbar" hidden>
+    <span class="meta" id="summary"></span>
+    <button id="clear" type="button">Start over</button>
+  </div>
+  <div id="groups"></div>
+
+  <details>
+    <summary>How it sorts and what it handles</summary>
+    <p>Tenants come from the applicant name on each application or screening report. Bank statements and other PDFs go to the tenant whose name appears on them. Photos can't be read reliably, so you choose their tenant, unless there's only one tenant.</p>
+    <p>Within each tenant the order is: ID photo, application report, screening report, bank statement, pay stubs, other. Drag or use the arrows to change it.</p>
+    <p>Photos are turned upright automatically. Use Rotate if a photo still looks sideways. Statements locked against editing are unlocked so they can merge. A file that needs a password to open can't be merged.</p>
+  </details>
+  </section>
+
+  <section id="stage-pages" hidden>
+    <div class="pagehead">
+      <div>
+        <h2>Check the page order</h2>
+        <p>This is exactly what the PDF will look like. Drag pages to rearrange them, or use ‹ ›. ⟳ rotates a page and ✕ leaves it out. Nothing is merged until you click Download PDF.</p>
+      </div>
+      <button id="reset" type="button">Reset to proposed order</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="pages" id="pages"></div>
+  </section>
+</main>
+
+<div class="bar">
+  <div class="in">
+    <div class="barrow" id="bar-files">
+      <span class="meta" id="barinfo"></span>
+      <button id="next" class="primary" type="button" disabled>Preview pages →</button>
+    </div>
+    <div class="barrow" id="bar-pages" hidden>
+      <button id="back" type="button">← Files</button>
+      <label for="outname" class="sr">File name</label>
+      <input id="outname" type="text" placeholder="File name, e.g. 974SN-3A 2026 PARTIAL" autocomplete="off">
+      <button id="go" class="primary" type="button">Download PDF</button>
+    </div>
+    <div id="status" role="status"></div>
+  </div>
+</div>
+
+<script>/*@@PDFLIB@@*/</script>
+<script>/*@@PDFJS@@*/</script>
+<script id="pdfjs-worker" type="text/plain">/*@@PDFJSWORKER@@*/</script>
+<script>
+'use strict';
+pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(
+  new Blob([document.getElementById('pdfjs-worker').textContent], { type: 'text/javascript' }));
+const { PDFDocument, PDFDict, PDFArray, PDFName, PDFRef, PDFString, PDFHexString, PDFRawStream, degrees } = PDFLib;
+
+const TYPES = [['id', 'ID photo'], ['app', 'Application report'], ['screen', 'Screening report'],
+               ['bank', 'Bank statement'], ['income', 'Pay stub / income'], ['other', 'Other']];
+const RANK = Object.fromEntries(TYPES.map(([k], i) => [k, i]));
+const state = { tenants: [], files: [] };
+let nextId = 1;
+const $ = s => document.querySelector(s);
+
+// ---------- small helpers ----------
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  el.append(...kids.filter(k => k != null));
+  return el;
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const titleCase = s => s.toLowerCase().replace(/(^|[\s'\-])\p{L}/gu, c => c.toUpperCase());
+const cat = (...parts) => { const a = []; parts.forEach(p => a.push(...p)); return new Uint8Array(a); };
+const toHex = b => Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+function setStatus(msg, cls) { const s = $('#status'); s.textContent = msg; s.className = cls || ''; }
+
+function sniff(b) {
+  if (b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46) return 'pdf';
+  if (b[0] === 0xFF && b[1] === 0xD8) return 'jpg';
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return 'png';
+  // Some PDFs have junk before the header
+  const head = String.fromCharCode(...b.subarray(0, 1024));
+  if (head.includes('%PDF-')) return 'pdf';
+  return null;
+}
+
+// ---------- MD5 + RC4 for unlocking edit-restricted PDFs ----------
+function md5(bytes) {
+  const S = [7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+             4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+  const K = Array.from({ length: 64 }, (_, i) => Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) >>> 0);
+  const len = bytes.length, blocks = ((len + 8) >>> 6) + 1, w = new Uint32Array(blocks * 16);
+  for (let i = 0; i < len; i++) w[i >> 2] |= bytes[i] << ((i % 4) * 8);
+  w[len >> 2] |= 0x80 << ((len % 4) * 8);
+  w[blocks * 16 - 2] = (len * 8) >>> 0;
+  w[blocks * 16 - 1] = Math.floor(len / 536870912);
+  let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+  for (let blk = 0; blk < blocks; blk++) {
+    let A = a0, B = b0, C = c0, D = d0;
+    for (let i = 0; i < 64; i++) {
+      let F, g;
+      if (i < 16) { F = (B & C) | (~B & D); g = i; }
+      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; }
+      else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+      F = (F + A + K[i] + w[blk * 16 + g]) >>> 0;
+      A = D; D = C; C = B;
+      B = (B + ((F << S[i]) | (F >>> (32 - S[i])))) >>> 0;
+    }
+    a0 = (a0 + A) >>> 0; b0 = (b0 + B) >>> 0; c0 = (c0 + C) >>> 0; d0 = (d0 + D) >>> 0;
+  }
+  const out = new Uint8Array(16);
+  [a0, b0, c0, d0].forEach((v, i) => { for (let j = 0; j < 4; j++) out[i * 4 + j] = (v >>> (8 * j)) & 255; });
+  return out;
+}
+function rc4(key, data) {
+  const S = new Uint8Array(256); for (let i = 0; i < 256; i++) S[i] = i;
+  for (let i = 0, j = 0; i < 256; i++) { j = (j + S[i] + key[i % key.length]) & 255; [S[i], S[j]] = [S[j], S[i]]; }
+  const out = new Uint8Array(data.length);
+  for (let k = 0, i = 0, j = 0; k < data.length; k++) {
+    i = (i + 1) & 255; j = (j + S[i]) & 255; [S[i], S[j]] = [S[j], S[i]];
+    out[k] = data[k] ^ S[(S[i] + S[j]) & 255];
+  }
+  return out;
+}
+const PAD = [0x28,0xBF,0x4E,0x5E,0x4E,0x75,0x8A,0x41,0x64,0x00,0x4E,0x56,0xFF,0xFA,0x01,0x08,
+             0x2E,0x2E,0x00,0xB6,0xD0,0x68,0x3E,0x80,0x2F,0x0C,0xA9,0xFE,0x64,0x53,0x69,0x7A];
+
+// Standard security handler, RC4 (V1/V2, R2/R3), opened with the empty user password.
+// Anything else throws, and the caller falls back to converting pages to images.
+function decryptDoc(src) {
+  const ctx = src.context;
+  const encRef = ctx.trailerInfo.Encrypt;
+  const enc = ctx.lookup(encRef, PDFDict);
+  const num = k => enc.get(PDFName.of(k)).asNumber();
+  const V = num('V'), R = num('R');
+  if (!(V === 1 || V === 2) || !(R === 2 || R === 3)) throw new Error(`unsupported encryption V${V} R${R}`);
+  const n = V === 1 ? 5 : (enc.get(PDFName.of('Length')) ? num('Length') : 40) / 8;
+  const O = enc.get(PDFName.of('O')).asBytes(), U = enc.get(PDFName.of('U')).asBytes();
+  const P = num('P') >>> 0;
+  const id0 = ctx.lookup(ctx.trailerInfo.ID, PDFArray).get(0).asBytes();
+  let key = md5(cat(PAD, O, [P & 255, (P >> 8) & 255, (P >> 16) & 255, (P >>> 24) & 255], id0)).slice(0, n);
+  if (R === 3) for (let i = 0; i < 50; i++) key = md5(key).slice(0, n);
+  let ok;
+  if (R === 2) ok = toHex(rc4(key, PAD)) === toHex(U);
+  else {
+    let x = rc4(key, md5(cat(PAD, id0)));
+    for (let i = 1; i <= 19; i++) x = rc4(key.map(b => b ^ i), x);
+    ok = toHex(x) === toHex(U.slice(0, 16));
+  }
+  if (!ok) throw new Error('needs a password');
+  const walk = (obj, k) => {
+    if (obj instanceof PDFString || obj instanceof PDFHexString) return PDFHexString.of(toHex(rc4(k, obj.asBytes())));
+    if (obj instanceof PDFDict) { for (const [name, v] of obj.entries()) { const nv = walk(v, k); if (nv !== v) obj.set(name, nv); } }
+    else if (obj instanceof PDFArray) { for (let i = 0; i < obj.size(); i++) { const v = obj.get(i), nv = walk(v, k); if (nv !== v) obj.set(i, nv); } }
+    else if (obj instanceof PDFRawStream) { walk(obj.dict, k); obj.contents = rc4(k, obj.contents); }
+    return obj;
+  };
+  for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+    if (encRef instanceof PDFRef && ref.objectNumber === encRef.objectNumber) continue;
+    const o = ref.objectNumber, g = ref.generationNumber;
+    walk(obj, md5(cat(key, [o & 255, (o >> 8) & 255, (o >> 16) & 255, g & 255, (g >> 8) & 255])).slice(0, Math.min(n + 5, 16)));
+  }
+}
+
+// ---------- JPEG EXIF orientation ----------
+function jpegOrientation(b) {
+  let p = 2;
+  while (p + 9 < b.length && b[p] === 0xFF) {
+    const marker = b[p + 1], len = (b[p + 2] << 8) | b[p + 3];
+    if (marker === 0xDA) break;
+    if (marker === 0xE1 && String.fromCharCode(b[p + 4], b[p + 5], b[p + 6], b[p + 7]) === 'Exif') {
+      const t = p + 10, le = b[t] === 0x49;
+      const u16 = o => le ? b[o] | (b[o + 1] << 8) : (b[o] << 8) | b[o + 1];
+      const u32 = o => (le ? b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24) : (b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]) >>> 0;
+      const ifd = t + u32(t + 4);
+      for (let i = 0, cnt = u16(ifd); i < cnt; i++) { const e = ifd + 2 + i * 12; if (u16(e) === 0x0112) return u16(e + 8); }
+      break;
+    }
+    p += 2 + len;
+  }
+  return 1;
+}
+const EXIF_CW = { 3: 180, 6: 90, 8: 270 };
+
+// ---------- reading files ----------
+async function addFiles(list) {
+  const added = [];
+  for (const file of list) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const f = { id: nextId++, name: file.name, bytes, kind: sniff(bytes), type: 'other', tenant: null,
+                turn: 0, pages: 0, seq: 0, reading: true };
+    if (!f.kind) {
+      try { (await createImageBitmap(new Blob([bytes]))).close(); f.kind = 'img'; }
+      catch { f.error = 'Not a PDF or a photo this browser can open (HEIC photos need converting to JPG first)'; f.reading = false; }
+    }
+    state.files.push(f); added.push(f);
+  }
+  render();
+  let i = 0;
+  for (const f of added) {
+    setStatus(`Reading ${++i} of ${added.length}…`);
+    if (!f.error) await analyze(f);
+    f.reading = false;
+  }
+  autoGroup(added);
+  setStatus('');
+  render();
+}
+
+async function analyze(f) {
+  if (f.kind !== 'pdf') {
+    f.thumb = URL.createObjectURL(new Blob([f.bytes]));
+    f.type = 'id'; f.pages = 1;
+    return;
+  }
+  try {
+    const doc = await pdfjsLib.getDocument({ data: f.bytes.slice(), isEvalSupported: false }).promise;
+    f.pages = doc.numPages;
+    let text = '';
+    for (let p = 1; p <= Math.min(2, doc.numPages); p++) {
+      text += ' ' + (await (await doc.getPage(p)).getTextContent()).items.map(t => t.str).join(' ');
+    }
+    f.text = text.replace(/\s+/g, ' ');
+    const page = await doc.getPage(1);
+    const vp1 = page.getViewport({ scale: 1 });
+    const vp = page.getViewport({ scale: 160 / Math.max(vp1.width, vp1.height) });
+    const c = h('canvas', { width: Math.ceil(vp.width), height: Math.ceil(vp.height) });
+    await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    f.thumb = c.toDataURL('image/png');
+    await doc.destroy();
+    classify(f);
+  } catch (e) {
+    f.error = e && e.name === 'PasswordException' ? 'Needs a password to open, so it can’t be merged' : 'Couldn’t read this PDF';
+  }
+}
+
+function classify(f) {
+  const t = f.text || '';
+  let m;
+  if (/Applicant Information/i.test(t) && /Desired Property|App ID|Rental Details/i.test(t)) {
+    f.type = 'app';
+    if ((m = t.match(/Last Name\s+(.+?)\s+Suffix\b.*?First Name\s+(.+?)\s+Middle Name/i))) f.person = { first: m[2], last: m[1] };
+  } else if (/RESIDENT SELECTION|Screened For/i.test(t)) {
+    f.type = 'screen';
+    if ((m = t.match(/Applicant Information\s+([\p{L}'’\- ]+?),\s*([\p{L}'’\-]+)/u))) f.person = { first: m[2], last: m[1] };
+  } else if (/pay ?stub|earnings statement|gross pay|net pay|pay period/i.test(t)) {
+    f.type = 'income';
+  } else if (/statement|beginning balance|ending balance|account summary|checking|savings/i.test(t)) {
+    f.type = 'bank';
+  }
+  if (f.person) f.person = { first: titleCase(f.person.first.trim()), last: titleCase(f.person.last.trim()) };
+}
+
+// ---------- grouping ----------
+const firstWord = s => s.toLowerCase().split(/\s+/)[0];
+function tenantFor(person) {
+  let t = state.tenants.find(t => t.last && t.last.toLowerCase() === person.last.toLowerCase() && firstWord(t.first) === firstWord(person.first));
+  if (!t) { t = { id: nextId++, name: `${person.first.split(/\s+/)[0]} ${person.last}`, first: person.first, last: person.last }; state.tenants.push(t); }
+  return t;
+}
+function nameOnFile(text, t) {
+  if (!t.last) return false;
+  const has = w => new RegExp(`(^|[^\\p{L}])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^\\p{L}]|$)`, 'iu').test(text);
+  return has(firstWord(t.first)) && has(t.last);
+}
+function autoGroup(added) {
+  for (const f of added) if (f.person && f.tenant == null) f.tenant = tenantFor(f.person).id;
+  for (const f of state.files) {
+    if (f.tenant == null && f.text) {
+      const hits = state.tenants.filter(t => nameOnFile(f.text, t));
+      if (hits.length === 1) f.tenant = hits[0].id;
+    }
+  }
+  // With one tenant, photos and scans (no readable name) go to them; a PDF naming someone else stays unassigned
+  if (state.tenants.length === 1) for (const f of state.files) if (f.tenant == null && !f.error && !(f.text || '').trim()) f.tenant = state.tenants[0].id;
+  [...added].sort((a, b) => RANK[a.type] - RANK[b.type]).forEach(placeByRank);
+}
+const filesOf = tid => state.files.filter(f => f.tenant === tid).sort((a, b) => a.seq - b.seq);
+// Put f into its group just before the first file of a later type, leaving the others' order alone
+function placeByRank(f) {
+  const rest = filesOf(f.tenant).filter(x => x !== f);
+  let at = rest.findIndex(x => RANK[x.type] > RANK[f.type]);
+  if (at < 0) at = rest.length;
+  rest.splice(at, 0, f);
+  rest.forEach((x, i) => { x.seq = i; });
+}
+function groups() {
+  state.tenants = state.tenants.filter(t => state.files.some(f => f.tenant === t.id));
+  const gs = state.tenants.map(t => ({ tenant: t, files: filesOf(t.id) }));
+  const loose = filesOf(null);
+  if (loose.length) gs.push({ tenant: null, files: loose });
+  return gs;
+}
+
+// ---------- rendering ----------
+Object.assign(state, { stage: 'files', pages: [], pagesSig: '' });
+const SHORT = { id: 'ID photo', app: 'Application', screen: 'Screening', bank: 'Bank statement', income: 'Pay stub', other: 'Other' };
+const COLORS = ['#2457d6', '#c2410c', '#15803d', '#9333ea', '#be185d', '#0e7490', '#a16207'];
+const fileById = id => state.files.find(f => f.id === id);
+const tenantById = id => state.tenants.find(t => t.id === id);
+const colorOf = tid => { const i = state.tenants.findIndex(t => t.id === tid); return i < 0 ? '#8a8f98' : COLORS[i % COLORS.length]; };
+const thumbCache = new Map();
+let drag = null;
+
+function render() {
+  const onPages = state.stage === 'pages';
+  $('#stage-files').hidden = onPages;
+  $('#stage-pages').hidden = !onPages;
+  $('#bar-files').hidden = onPages;
+  $('#bar-pages').hidden = !onPages;
+  if (onPages) renderPages(); else renderFiles();
+}
+
+function renderFiles() {
+  const gs = groups();
+  const box = $('#groups');
+  box.replaceChildren();
+  $('#toolbar').hidden = !state.files.length;
+  const usable = state.files.filter(f => !f.error);
+  const pages = usable.reduce((s, f) => s + f.pages, 0);
+  const summary = `${plural(state.files.length, 'file')} · ${plural(state.tenants.length, 'tenant')} · ${plural(pages, 'page')}`;
+  $('#summary').textContent = summary;
+  $('#barinfo').textContent = state.files.length ? summary : 'Add files to get started';
+  gs.forEach((g, gi) => {
+    const gp = g.files.reduce((s, f) => s + (f.error ? 0 : f.pages), 0);
+    const head = h('div', { class: 'ghead' });
+    const sec = h('section', { class: 'group' + (g.tenant ? '' : ' unassigned') }, head);
+    if (g.tenant) {
+      const grip = h('span', { class: 'grip', draggable: 'true', title: 'Drag to move this tenant' }, '⋮⋮');
+      grip.addEventListener('dragstart', e => startDrag(e, { kind: 'tenant', t: g.tenant }, sec));
+      grip.addEventListener('dragend', endDrag);
+      head.append(grip, h('span', { class: 'num' }, String(gi + 1)), h('h2', {}, g.tenant.name),
+        h('span', { class: 'meta' }, `· ${plural(g.files.length, 'file')} · ${plural(gp, 'page')}`),
+        h('button', { class: 'icon', type: 'button', title: 'Rename tenant', 'aria-label': 'Rename tenant', onclick: () => renameTenant(g.tenant) }, '✎'),
+        h('button', { class: 'icon', type: 'button', title: 'Move tenant up', 'aria-label': 'Move tenant up', disabled: gi === 0, onclick: () => moveTenant(gi, -1) }, '↑'),
+        h('button', { class: 'icon', type: 'button', title: 'Move tenant down', 'aria-label': 'Move tenant down', disabled: gi === state.tenants.length - 1, onclick: () => moveTenant(gi, 1) }, '↓'));
+    } else {
+      head.append(h('h2', {}, 'Not assigned to a tenant'), h('span', { class: 'meta' }, `· ${plural(g.files.length, 'file')}`));
+    }
+    if (!g.tenant && g.files.some(f => !f.error)) sec.append(h('p', { class: 'hint' }, 'Choose a tenant for each of these, or drag them into a tenant. Anything left here goes at the end of the PDF.'));
+    g.files.forEach((f, fi) => sec.append(row(f, fi, g.files)));
+    // Dropping a file on a group (not on a row) adds it to the end; dropping a tenant reorders tenants
+    sec.addEventListener('dragover', e => {
+      if (drag && drag.kind === 'file') { e.preventDefault(); mark(sec, 'drop-into'); }
+      else if (drag && drag.kind === 'tenant' && g.tenant && drag.t !== g.tenant) { e.preventDefault(); mark(sec, afterY(e, sec) ? 'drop-after' : 'drop-before'); }
+    });
+    sec.addEventListener('dragleave', e => { if (!sec.contains(e.relatedTarget)) unmark(sec); });
+    sec.addEventListener('drop', e => {
+      if (!drag) return;
+      e.preventDefault(); e.stopPropagation();
+      if (drag.kind === 'file') moveFile(drag.f, g.tenant ? g.tenant.id : null, null, false);
+      else if (drag.kind === 'tenant' && g.tenant && drag.t !== g.tenant) moveTenantTo(drag.t, g.tenant, afterY(e, sec));
+      endDrag();
+    });
+    box.append(sec);
+  });
+  $('#next').disabled = !usable.length || state.files.some(f => f.reading);
+  if (state.files.some(f => f.tenant == null && !f.error && !f.reading)) setStatus(UNASSIGNED_HINT);
+  else if ($('#status').textContent === UNASSIGNED_HINT) setStatus('');
+}
+const UNASSIGNED_HINT = 'Choose a tenant for each file in the "Not assigned" box.';
+
+function row(f, fi, list) {
+  const thumb = h('div', { class: 'thumb' });
+  if (f.thumb) { const im = h('img', { src: f.thumb, alt: '' }); im.style.transform = `rotate(${f.turn}deg)`; thumb.append(im); }
+  else thumb.textContent = f.error ? '!' : '…';
+  let meta;
+  if (f.error) meta = h('div', { class: 'fmeta err' }, f.error);
+  else if (f.reading) meta = h('div', { class: 'fmeta' }, 'Reading…');
+  else meta = h('div', { class: 'fmeta' }, `${f.kind === 'pdf' ? 'PDF' : 'Photo'} · ${plural(f.pages, 'page')}${f.person ? ` · applicant: ${f.person.first} ${f.person.last}` : ''}`);
+  const info = h('div', { class: 'info' }, h('div', { class: 'fname', title: f.name }, f.name), meta);
+  if (!f.error && !f.reading) {
+    const typeSel = h('select', { 'aria-label': 'Document type', onchange: e => { f.type = e.target.value; placeByRank(f); render(); } },
+      ...TYPES.map(([k, label]) => h('option', { value: k, selected: k === f.type }, label)));
+    const tenSel = h('select', { 'aria-label': 'Tenant', onchange: e => setTenant(f, e.target.value, e.target) },
+      ...state.tenants.map(t => h('option', { value: t.id, selected: f.tenant === t.id }, t.name)),
+      h('option', { value: '', selected: f.tenant == null }, '— Choose tenant —'),
+      h('option', { value: 'new' }, '+ New tenant…'));
+    info.append(h('div', { class: 'ctrls' }, typeSel, tenSel,
+      h('button', { type: 'button', title: 'Rotate 90° clockwise', onclick: () => { f.turn = (f.turn + 90) % 360; render(); } }, '⟳ Rotate')));
+  }
+  const side = h('div', { class: 'side' },
+    h('button', { class: 'icon', type: 'button', title: 'Move up', 'aria-label': 'Move up', disabled: fi === 0, onclick: () => swap(f, list[fi - 1]) }, '↑'),
+    h('button', { class: 'icon', type: 'button', title: 'Move down', 'aria-label': 'Move down', disabled: fi === list.length - 1, onclick: () => swap(f, list[fi + 1]) }, '↓'),
+    h('button', { class: 'icon', type: 'button', title: 'Remove', 'aria-label': 'Remove file', onclick: () => remove(f) }, '✕'));
+  const grip = h('span', { class: 'grip', draggable: 'true', title: 'Drag to move this file' }, '⋮⋮');
+  const el = h('div', { class: 'row' }, grip, thumb, info, side);
+  grip.addEventListener('dragstart', e => startDrag(e, { kind: 'file', f }, el));
+  grip.addEventListener('dragend', endDrag);
+  el.addEventListener('dragover', e => {
+    if (!drag || drag.kind !== 'file' || drag.f === f) return;
+    e.preventDefault(); e.stopPropagation();
+    clearMarks(); mark(el, afterY(e, el) ? 'drop-after' : 'drop-before');
+  });
+  el.addEventListener('dragleave', () => unmark(el));
+  el.addEventListener('drop', e => {
+    if (!drag || drag.kind !== 'file') return;
+    e.preventDefault(); e.stopPropagation();
+    if (drag.f !== f) moveFile(drag.f, f.tenant, f, afterY(e, el));
+    endDrag();
+  });
+  return el;
+}
+
+// ---------- drag and drop ----------
+function startDrag(e, what, el) {
+  drag = what;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+  if (el && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(el, 24, 24);
+  requestAnimationFrame(() => el && el.classList.add('dragging'));
+}
+function endDrag() { drag = null; clearMarks(); document.querySelectorAll('.dragging').forEach(x => x.classList.remove('dragging')); }
+const MARKS = ['drop-before', 'drop-after', 'drop-into'];
+function mark(el, cls) { el.classList.remove(...MARKS); el.classList.add(cls); }
+function unmark(el) { el.classList.remove(...MARKS); }
+function clearMarks() { document.querySelectorAll('.drop-before,.drop-after,.drop-into').forEach(unmark); }
+const afterY = (e, el) => { const r = el.getBoundingClientRect(); return e.clientY > r.top + r.height / 2; };
+const afterX = (e, el) => { const r = el.getBoundingClientRect(); return e.clientX > r.left + r.width / 2; };
+
+function moveFile(f, tenantId, target, after) {
+  f.tenant = tenantId;
+  const list = filesOf(tenantId).filter(x => x !== f);
+  const at = target ? list.indexOf(target) + (after ? 1 : 0) : list.length;
+  list.splice(at, 0, f);
+  list.forEach((x, i) => { x.seq = i; });
+  render();
+}
+function moveTenantTo(t, target, after) {
+  const arr = state.tenants.filter(x => x !== t);
+  arr.splice(arr.indexOf(target) + (after ? 1 : 0), 0, t);
+  state.tenants = arr;
+  render();
+}
+
+function setTenant(f, v, sel) {
+  if (v === 'new') {
+    const name = (prompt('Tenant name:') || '').trim();
+    if (!name) { sel.value = f.tenant == null ? '' : f.tenant; return; }
+    const parts = name.split(/\s+/);
+    const t = { id: nextId++, name, first: parts[0], last: parts.length > 1 ? parts[parts.length - 1] : '' };
+    state.tenants.push(t);
+    f.tenant = t.id;
+  } else {
+    f.tenant = v === '' ? null : Number(v);
+  }
+  placeByRank(f);
+  render();
+}
+function renameTenant(t) {
+  const name = (prompt('Tenant name:', t.name) || '').trim();
+  if (name) { t.name = name; render(); }
+}
+function moveTenant(i, d) { const t = state.tenants; [t[i], t[i + d]] = [t[i + d], t[i]]; render(); }
+function swap(a, b) { [a.seq, b.seq] = [b.seq, a.seq]; render(); }
+function remove(f) {
+  state.files = state.files.filter(x => x !== f);
+  if (f.thumb && f.thumb.startsWith('blob:')) URL.revokeObjectURL(f.thumb);
+  render();
+}
+
+// ---------- page preview ----------
+function proposedPages() {
+  return groups().flatMap(g => g.files).filter(f => !f.error).flatMap(f =>
+    Array.from({ length: f.pages }, (_, i) => ({ key: `${f.id}:${i}`, fileId: f.id, index: i, turn: f.turn })));
+}
+const arrangementSig = () => JSON.stringify(groups().map(g => [g.tenant && g.tenant.id, g.files.map(f => [f.id, f.turn])]));
+
+function goPages() {
+  const sig = arrangementSig();
+  let msg = '';
+  if (sig !== state.pagesSig || !state.pages.length) {
+    if (state.pages.length) msg = 'Your file changes reset the page order to match.';
+    state.pages = proposedPages();
+    state.pagesSig = sig;
+  }
+  state.stage = 'pages';
+  setStatus(msg);
+  render();
+  window.scrollTo(0, 0);
+  fillThumbs();
+}
+function goFiles() { state.stage = 'files'; setStatus(''); render(); window.scrollTo(0, 0); }
+
+function renderPages() {
+  const used = [...new Set(state.pages.map(p => fileById(p.fileId).tenant))];
+  $('#legend').replaceChildren(
+    h('span', {}, plural(state.pages.length, 'page')),
+    ...used.map(tid => { const s = h('span', { style: `--tc:${colorOf(tid)}` }, h('span', { class: 'dot' }), tid == null ? 'Not assigned' : tenantById(tid).name); return s; }));
+  const box = $('#pages');
+  box.replaceChildren();
+  const last = state.pages.length - 1;
+  state.pages.forEach((p, i) => {
+    const f = fileById(p.fileId);
+    const t = tenantById(f.tenant);
+    const src = f.kind === 'pdf' ? thumbCache.get(p.key) : f.thumb;
+    const img = h('img', { alt: '', 'data-key': p.key, src: src || false });
+    img.style.transform = `rotate(${p.turn}deg)`;
+    const cap = `${t ? t.name : 'Not assigned'} · ${SHORT[f.type]}${f.pages > 1 ? ` ${p.index + 1}/${f.pages}` : ''}`;
+    const card = h('div', { class: 'page', draggable: 'true', style: `--tc:${colorOf(f.tenant)}` },
+      h('div', { class: 'pthumb' }, img),
+      h('div', { class: 'pnum' }, `Page ${i + 1}`),
+      h('div', { class: 'pcap', title: `${cap}\n${f.name}` }, cap),
+      h('div', { class: 'pbtns' },
+        h('button', { type: 'button', title: 'Move earlier', 'aria-label': `Move page ${i + 1} earlier`, disabled: i === 0, onclick: () => movePage(i, i - 1) }, '‹'),
+        h('button', { type: 'button', title: 'Move later', 'aria-label': `Move page ${i + 1} later`, disabled: i === last, onclick: () => movePage(i, i + 2) }, '›'),
+        h('button', { type: 'button', title: 'Rotate 90° clockwise', 'aria-label': `Rotate page ${i + 1}`, onclick: () => { p.turn = (p.turn + 90) % 360; render(); } }, '⟳'),
+        h('button', { type: 'button', title: 'Leave this page out', 'aria-label': `Remove page ${i + 1}`, onclick: () => { state.pages.splice(i, 1); render(); } }, '✕')));
+    card.addEventListener('dragstart', e => startDrag(e, { kind: 'page', i }, card));
+    card.addEventListener('dragend', endDrag);
+    card.addEventListener('dragover', e => {
+      if (!drag || drag.kind !== 'page') return;
+      e.preventDefault(); e.stopPropagation();
+      clearMarks(); mark(card, afterX(e, card) ? 'drop-after' : 'drop-before');
+    });
+    card.addEventListener('dragleave', () => unmark(card));
+    card.addEventListener('drop', e => {
+      if (!drag || drag.kind !== 'page') return;
+      e.preventDefault(); e.stopPropagation();
+      movePage(drag.i, i + (afterX(e, card) ? 1 : 0));
+      endDrag();
+    });
+    box.append(card);
+  });
+  if (!state.pages.length) box.append(h('p', { class: 'empty' }, 'Every page was left out. Use “Reset to proposed order” to bring them back.'));
+  $('#go').disabled = !state.pages.length;
+}
+
+// Move the page at `from` so it lands just before the page currently at `to`
+function movePage(from, to) {
+  if (to < 0 || to > state.pages.length) return;
+  const [p] = state.pages.splice(from, 1);
+  state.pages.splice(to > from ? to - 1 : to, 0, p);
+  render();
+}
+
+let thumbRun = 0;
+async function fillThumbs() {
+  const run = ++thumbRun;
+  const byFile = new Map();
+  for (const p of state.pages) {
+    const f = fileById(p.fileId);
+    if (f.kind !== 'pdf' || thumbCache.has(p.key)) continue;
+    if (!byFile.has(f)) byFile.set(f, []);
+    byFile.get(f).push(p.index);
+  }
+  for (const [f, indexes] of byFile) {
+    if (run !== thumbRun) return;
+    let doc;
+    try { doc = await pdfjsLib.getDocument({ data: f.bytes.slice(), isEvalSupported: false }).promise; } catch { continue; }
+    for (const i of indexes) {
+      if (run !== thumbRun) break;
+      const page = await doc.getPage(i + 1);
+      const vp1 = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: 320 / Math.max(vp1.width, vp1.height) });
+      const c = h('canvas', { width: Math.ceil(vp.width), height: Math.ceil(vp.height) });
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      const key = `${f.id}:${i}`, url = c.toDataURL('image/jpeg', 0.85);
+      thumbCache.set(key, url);
+      document.querySelectorAll(`img[data-key="${key}"]`).forEach(im => { im.src = url; });
+    }
+    await doc.destroy();
+  }
+}
+
+// ---------- building the PDF ----------
+async function addImage(out, f, turn) {
+  let bytes = f.bytes, kind = f.kind;
+  if (kind === 'img') {
+    const bmp = await createImageBitmap(new Blob([bytes]));
+    const c = h('canvas', { width: bmp.width, height: bmp.height });
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0);
+    bytes = new Uint8Array(await (await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92))).arrayBuffer());
+    kind = 'converted';
+  }
+  const img = kind === 'png' ? await out.embedPng(bytes) : await out.embedJpg(bytes);
+  const exif = kind === 'jpg' ? jpegOrientation(bytes) : 1;
+  const cw = ((EXIF_CW[exif] || 0) + turn) % 360;
+  const sideways = cw === 90 || cw === 270;
+  // US Letter, turned to match the photo, with a small margin
+  const W = 612, H = 792, M = 18;
+  const dw = sideways ? img.height : img.width, dh = sideways ? img.width : img.height;
+  const pw = dw > dh ? H : W, ph = dw > dh ? W : H;
+  const s = Math.min((pw - 2 * M) / dw, (ph - 2 * M) / dh);
+  const bw = dw * s, bh = dh * s, bx = (pw - bw) / 2, by = (ph - bh) / 2;
+  const opts = { width: img.width * s, height: img.height * s };
+  if (cw === 90) Object.assign(opts, { x: bx, y: by + bh, rotate: degrees(-90) });
+  else if (cw === 270) Object.assign(opts, { x: bx + bw, y: by, rotate: degrees(90) });
+  else if (cw === 180) Object.assign(opts, { x: bx + bw, y: by + bh, rotate: degrees(180) });
+  else Object.assign(opts, { x: bx, y: by });
+  out.addPage([pw, ph]).drawImage(img, opts);
+}
+
+// Copies the needed pages of one PDF into `out` (not yet added). Returns index -> page,
+// or null if pdf-lib can't handle the file and its pages need drawing as pictures instead.
+async function copyFromPdf(out, f, indexes, notes) {
+  try {
+    let src;
+    try { src = await PDFDocument.load(f.bytes, { updateMetadata: false }); }
+    catch (e) {
+      if (!/encrypt/i.test(e.message)) throw e;
+      src = await PDFDocument.load(f.bytes, { ignoreEncryption: true, updateMetadata: false });
+      decryptDoc(src);
+      notes.push(`unlocked “${f.name}”`);
+    }
+    const copied = await out.copyPages(src, indexes);
+    return new Map(indexes.map((idx, k) => [idx, copied[k]]));
+  } catch (e) {
+    notes.push(`“${f.name}” was added as page images`);
+    return null;
+  }
+}
+
+async function addPageImage(out, pjs, index, turn) {
+  const page = await pjs.getPage(index + 1);
+  const vp1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: 2.5 });
+  const c = h('canvas', { width: Math.ceil(vp.width), height: Math.ceil(vp.height) });
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  const jpg = new Uint8Array(await (await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9))).arrayBuffer());
+  const img = await out.embedJpg(jpg);
+  const pg = out.addPage([vp1.width, vp1.height]);
+  pg.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+  if (turn) pg.setRotation(degrees(turn));
+}
+
+async function build(pageList = state.pages.length ? state.pages : proposedPages()) {
+  const out = await PDFDocument.create();
+  const notes = [];
+  // Copy each PDF's needed pages in one go so shared fonts and images aren't duplicated
+  const needed = new Map();
+  for (const p of pageList) {
+    const f = fileById(p.fileId);
+    if (f.kind !== 'pdf') continue;
+    if (!needed.has(f)) needed.set(f, []);
+    needed.get(f).push(p.index);
+  }
+  const copied = new Map(), fallback = new Map();
+  for (const [f, indexes] of needed) {
+    setStatus(`Preparing ${f.name}…`);
+    const m = await copyFromPdf(out, f, indexes, notes);
+    if (m) copied.set(f, m);
+    else fallback.set(f, await pdfjsLib.getDocument({ data: f.bytes.slice(), isEvalSupported: false }).promise);
+  }
+  for (let i = 0; i < pageList.length; i++) {
+    const p = pageList[i], f = fileById(p.fileId);
+    setStatus(`Adding page ${i + 1} of ${pageList.length}…`);
+    if (f.kind !== 'pdf') await addImage(out, f, p.turn);
+    else if (copied.has(f)) {
+      const pg = copied.get(f).get(p.index);
+      if (p.turn) pg.setRotation(degrees((pg.getRotation().angle + p.turn) % 360));
+      out.addPage(pg);
+    } else await addPageImage(out, fallback.get(f), p.index, p.turn);
+  }
+  for (const d of fallback.values()) await d.destroy();
+  return { bytes: await out.save(), pages: out.getPageCount(), notes };
+}
+
+async function download() {
+  let name = ($('#outname').value.trim() || 'Merged').replace(/[\\/:*?"<>|]+/g, '-').replace(/\.pdf$/i, '');
+  name += '.pdf';
+  $('#go').disabled = true;
+  try {
+    const { bytes, pages, notes } = await build();
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    const a = h('a', { href: url, download: name });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    setStatus(`Saved “${name}” (${plural(pages, 'page')}) to your Downloads folder.${notes.length ? ' Note: ' + notes.join('; ') + '.' : ''}`, 'ok');
+  } catch (e) {
+    console.error(e);
+    setStatus('Something went wrong building the PDF: ' + (e && e.message || e), 'err');
+  } finally {
+    $('#go').disabled = !state.pages.length;
+  }
+}
+
+// ---------- wiring ----------
+const drop = $('#drop'), picker = $('#picker');
+drop.addEventListener('click', () => picker.click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); picker.click(); } });
+picker.addEventListener('change', () => { if (picker.files.length) addFiles([...picker.files]); picker.value = ''; });
+// Files dropped anywhere on the page are added instead of opening in the browser
+window.addEventListener('dragover', e => {
+  e.preventDefault();
+  if (!drag && state.stage === 'files' && [...e.dataTransfer.types].includes('Files')) drop.classList.add('over');
+});
+window.addEventListener('dragleave', e => { if (!e.relatedTarget) drop.classList.remove('over'); });
+window.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('over');
+  if (drag) { endDrag(); return; }
+  if (e.dataTransfer.files.length) {
+    if (state.stage === 'pages') goFiles();
+    addFiles([...e.dataTransfer.files]);
+  }
+});
+$('#next').addEventListener('click', goPages);
+$('#back').addEventListener('click', goFiles);
+$('#reset').addEventListener('click', () => { state.pages = proposedPages(); state.pagesSig = arrangementSig(); setStatus(''); render(); fillThumbs(); });
+$('#go').addEventListener('click', download);
+$('#outname').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('#go').disabled) download(); });
+$('#clear').addEventListener('click', () => {
+  if (!confirm('Remove all files and start over?')) return;
+  state.files.forEach(f => f.thumb && f.thumb.startsWith('blob:') && URL.revokeObjectURL(f.thumb));
+  state.files = []; state.tenants = []; state.pages = []; state.pagesSig = ''; thumbCache.clear();
+  setStatus(''); render();
+});
+render();
+window.__merger = { addFiles, build, state, md5, goPages, goFiles, movePage, moveFile };
+</script>
+</body>
+</html>
