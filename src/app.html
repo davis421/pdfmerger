@@ -6,109 +6,184 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <title>Tenant PDF Merger</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232457d6'/%3E%3Crect x='5.5' y='4.5' width='14' height='18' rx='2' fill='%23fff' opacity='.5'/%3E%3Cpath d='M13 9h8l5 5v11a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2z' fill='%23fff'/%3E%3Cpath d='M21 9v4a1 1 0 0 0 1 1h4z' fill='%23b9cbf5'/%3E%3Crect x='14' y='17' width='9' height='1.8' rx='.9' fill='%232457d6'/%3E%3Crect x='14' y='20.5' width='9' height='1.8' rx='.9' fill='%232457d6'/%3E%3Crect x='14' y='24' width='6' height='1.8' rx='.9' fill='%232457d6'/%3E%3C/svg%3E">
 <style>
-:root{--bg:#f5f6f8;--card:#fff;--text:#16181d;--muted:#606773;--line:#dfe2e7;--accent:#2457d6;--accent-ink:#fff;--warn:#8a4b00;--warn-bg:#fff4e0;--err:#b42318;--drop:#eef3ff}
-@media (prefers-color-scheme: dark){:root{--bg:#121417;--card:#1b1e23;--text:#e8eaed;--muted:#9aa1ab;--line:#2f343b;--accent:#7097ff;--accent-ink:#0b0d10;--warn:#f0b35a;--warn-bg:#2a2112;--err:#ff8a80;--drop:#1a2233}}
+:root{
+  --bg:#f4f5f7;--card:#fff;--soft:#f7f8fa;--text:#14161a;--muted:#646b76;--line:#e3e6eb;--line-strong:#d3d8df;
+  --accent:#2457d6;--accent-ink:#fff;--accent-soft:#eaf0fd;
+  --warn:#8a4b00;--warn-bg:#fff6e8;--warn-line:#f2d3a6;--err:#b42318;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06);--radius:14px;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f1114;--card:#181b20;--soft:#1d2127;--text:#e9ebee;--muted:#9aa2ad;--line:#2a2f36;--line-strong:#363c45;
+  --accent:#7097ff;--accent-ink:#0b0d10;--accent-soft:#1b2440;
+  --warn:#f0b35a;--warn-bg:#271f12;--warn-line:#4a3a1f;--err:#ff8a80;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:860px;margin:0 auto;padding:28px 16px 150px}
-h1{font-size:24px;margin:0 0 4px}
-.sub{color:var(--muted);margin:0 0 18px}
-ol.steps{margin:0 0 18px;padding-left:20px;color:var(--muted);font-size:14px}
-ol.steps b{color:var(--text)}
-#drop{border:2px dashed var(--line);border-radius:12px;background:var(--card);padding:30px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
-#drop:hover,#drop.over{border-color:var(--accent);background:var(--drop)}
-#drop strong{display:block;font-size:17px;margin-bottom:2px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:880px;margin:0 auto;padding:0 16px 140px}
+button,select,input{font:inherit;color:inherit}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;padding:22px 0 18px}
+.logo{width:40px;height:40px;flex:none;border-radius:10px;box-shadow:var(--shadow)}
+.brand{flex:1;min-width:0}
+.brand h1{font-size:19px;line-height:1.2;margin:0;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.private{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap}
+.private svg{width:13px;height:13px}
+
+/* steps */
+.steps{display:flex;gap:6px;margin:0 0 16px;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.steps li{white-space:nowrap;display:flex;align-items:center;gap:7px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.steps li span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--soft);font-size:11px;font-weight:700}
+body[data-stage="files"] .steps .s-files,body[data-stage="pages"] .steps .s-pages{color:var(--text);border-color:var(--accent)}
+body[data-stage="files"] .steps .s-files span,body[data-stage="pages"] .steps .s-pages span{background:var(--accent);color:var(--accent-ink)}
+
+/* drop zone */
+#drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px dashed var(--line-strong);border-radius:var(--radius);background:var(--card);padding:34px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s,padding .2s}
+#drop svg{width:30px;height:30px;color:var(--accent);margin-bottom:4px}
+#drop:hover,#drop:focus-visible,#drop.over{border-color:var(--accent);background:var(--accent-soft);outline:none}
+#drop strong{font-size:16px}
 #drop span{color:var(--muted);font-size:13px}
-.opt{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14px;color:var(--muted);cursor:pointer}
-.opt input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--accent)}
-.opt b{color:var(--text)}
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px}
+body.has-files #drop{flex-direction:row;justify-content:center;gap:10px;padding:14px 16px}
+body.has-files #drop svg{width:20px;height:20px;margin:0}
+body.has-files #drop span{display:none}
+
+/* sort switch */
+.opt{display:flex;gap:12px;align-items:center;margin-top:12px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.opt input{appearance:none;-webkit-appearance:none;flex:none;width:36px;height:20px;margin:0;border-radius:999px;background:var(--line-strong);position:relative;cursor:pointer;transition:background .15s}
+.opt input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.opt input:checked{background:var(--accent)}
+.opt input:checked::after{transform:translateX(16px)}
+.opt input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.opt span{font-size:13px;color:var(--muted);line-height:1.35}
+.opt b{display:block;color:var(--text);font-size:14px;font-weight:600}
+
+/* toolbar + groups */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:22px 0 2px;gap:8px}
 .toolbar .meta{color:var(--muted);font-size:13px}
-.group{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden}
-.ghead{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
-.ghead .num{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px}
-.ghead h2{font-size:16px;margin:0}
+.group{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:12px;overflow:hidden;box-shadow:var(--shadow)}
+.ghead{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--soft);border-bottom:1px solid var(--line)}
+.ghead .num{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700}
+.ghead h2{font-size:15px;margin:0}
 .ghead .meta{color:var(--muted);font-size:13px;flex:1}
-.group.unassigned{border-color:var(--warn)}
+.group.unassigned{border-color:var(--warn-line)}
 .group.unassigned .ghead{background:var(--warn-bg)}
 .group.unassigned h2{color:var(--warn)}
-.hint{margin:0;padding:8px 12px;font-size:13px;color:var(--warn);border-bottom:1px solid var(--line)}
-.row{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px}
+.hint{margin:0;padding:8px 14px;font-size:13px;color:var(--warn);background:var(--warn-bg);border-bottom:1px solid var(--warn-line)}
+.row{display:grid;grid-template-columns:auto 56px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px}
 .row+.row{border-top:1px solid var(--line)}
-.thumb{width:60px;height:60px;border:1px solid var(--line);border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#888;font-weight:700}
+.thumb{width:56px;height:56px;border:1px solid var(--line);border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#999;font-weight:700}
 .thumb img{max-width:100%;max-height:100%}
 .fname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:600}
 .fmeta{color:var(--muted);font-size:12px}
 .fmeta.err{color:var(--err)}
 .ctrls{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
-.side{display:flex;flex-direction:column;gap:4px}
-select,input[type=text]{font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);max-width:100%}
-button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:6px;padding:4px 8px;cursor:pointer}
-button:hover:not(:disabled){border-color:var(--accent)}
-button:disabled{opacity:.35;cursor:default}
-.icon{width:30px;padding:3px 0;line-height:1.2}
-.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
-.bar .in{max-width:860px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-#status:empty{display:none}
-.bar input{flex:1;min-width:0;font-size:15px;padding:9px 10px}
-.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:15px;padding:9px 18px;font-weight:600}
-#status{width:100%;font-size:13px;color:var(--muted);min-height:1.2em}
-#status.err{color:var(--err)}
-#status.ok{color:var(--text)}
+.side{display:flex;flex-direction:column;gap:2px}
+select{font-size:13px;height:30px;padding:0 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);max-width:100%;cursor:pointer}
+button{font-size:13px;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;padding:5px 10px;cursor:pointer;transition:background .12s,border-color .12s}
+button:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button:disabled{opacity:.3;cursor:default}
+.ic{display:inline-flex;vertical-align:-3px}
+.ic svg{width:16px;height:16px}
+button{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.icon{display:inline-grid;place-items:center;width:30px;height:28px;padding:0;border-color:transparent;background:transparent;color:var(--muted);line-height:1}
+.icon:hover:not(:disabled){color:var(--text)}
+.grip{cursor:grab;color:var(--muted);opacity:.6;user-select:none;font-size:18px;line-height:1;padding:6px 2px;letter-spacing:-3px}
+.grip:hover{color:var(--accent);opacity:1}
 .empty{color:var(--muted);text-align:center;padding:18px 0;margin:0}
-details{margin-top:24px;color:var(--muted);font-size:13px}
-details summary{cursor:pointer}
-.row{grid-template-columns:auto 60px minmax(0,1fr) auto}
-.grip{cursor:grab;color:var(--muted);user-select:none;font-size:18px;line-height:1;padding:6px 2px;letter-spacing:-3px}
-.grip:hover{color:var(--accent)}
+details{margin-top:28px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+details summary{cursor:pointer;color:var(--text);font-weight:600}
+details p{margin:8px 0}
+
+/* drag feedback */
 .dragging{opacity:.4}
 .row.drop-before{box-shadow:inset 0 3px 0 var(--accent)}
 .row.drop-after{box-shadow:inset 0 -3px 0 var(--accent)}
 .group.drop-into{outline:2px solid var(--accent);outline-offset:-1px}
 .group.drop-before{box-shadow:0 -4px 0 var(--accent)}
 .group.drop-after{box-shadow:0 4px 0 var(--accent)}
-.barrow{display:flex;gap:8px;align-items:center;width:100%}
-.barrow .meta{flex:1;color:var(--muted);font-size:13px}
+
+/* page preview */
 .pagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .pagehead h2{font-size:18px;margin:0 0 2px}
 .pagehead p{margin:0;color:var(--muted);font-size:14px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:14px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--tc);margin-right:6px;vertical-align:-1px}
 .pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
-.page{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--tc);border-radius:10px;padding:8px;cursor:grab;min-width:0}
-.pthumb{height:160px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:4px;overflow:hidden}
+.page{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--tc);border-radius:12px;padding:8px;cursor:grab;min-width:0;box-shadow:var(--shadow)}
+.pthumb{height:160px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
 .pthumb img{max-width:100%;max-height:100%}
-.pnum{font-weight:700;font-size:13px;margin-top:6px}
-.pcap{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pbtns{display:flex;gap:4px;margin-top:6px}
-.pbtns button{flex:1;padding:3px 0}
+.pnum{font-weight:700;font-size:13px;margin-top:8px}
+.pcap{font-size:12px;color:var(--muted);min-width:0}
+.pcap>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pwhat{color:var(--text)}
+#reset{white-space:nowrap;flex:none}
+.pbtns{display:flex;gap:2px;margin-top:6px}
+.pbtns button{flex:1;display:grid;place-items:center;height:28px;padding:0;border-color:transparent;background:var(--soft);color:var(--muted)}
+.pbtns button:hover:not(:disabled){color:var(--text)}
 .page.drop-before{box-shadow:-5px 0 0 var(--accent)}
 .page.drop-after{box-shadow:5px 0 0 var(--accent)}
-@media (max-width:520px){.row{grid-template-columns:auto 48px minmax(0,1fr) auto}.thumb{width:48px;height:48px}.pages{grid-template-columns:repeat(2,minmax(0,1fr))}.pagehead{flex-direction:column}}
+
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 16px}
+.bar .in{max-width:880px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.barrow{display:flex;gap:8px;align-items:center;width:100%}
+.barrow .meta{flex:1;color:var(--muted);font-size:13px}
+.bar input{flex:1;min-width:0;height:42px;font-size:15px;padding:0 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card)}
+.bar button{height:42px;border-radius:10px;padding:0 14px}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:15px;padding:0 20px!important;font-weight:600}
+.primary:hover:not(:disabled){background:var(--accent);filter:brightness(1.08)}
+#status{width:100%;font-size:13px;color:var(--muted)}
+#status:empty{display:none}
+#status.err{color:var(--err)}
+#status.ok{color:var(--text)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:560px){
+  .private{display:none}
+  .steps{gap:4px;font-size:12px}
+  .steps li{padding:4px 8px 4px 4px;gap:5px}
+  .row{grid-template-columns:auto 44px minmax(0,1fr) auto;gap:8px;padding:10px 8px}
+  .thumb{width:44px;height:44px}
+  .pages{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pagehead{flex-direction:column}
+}
 </style>
 </head>
-<body>
+<body data-stage="files">
 <main>
-  <h1>Tenant PDF Merger</h1>
-  <p class="sub">Combine ID photos, application reports, screening reports and bank statements into one PDF. Everything happens on this computer, and nothing is uploaded.</p>
-  <section id="stage-files">
+  <header class="top">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2457d6"/><rect x="5.5" y="4.5" width="14" height="18" rx="2" fill="#fff" opacity=".5"/><path d="M13 9h8l5 5v11a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2z" fill="#fff"/><path d="M21 9v4a1 1 0 0 0 1 1h4z" fill="#b9cbf5"/><rect x="14" y="17" width="9" height="1.8" rx=".9" fill="#2457d6"/><rect x="14" y="20.5" width="9" height="1.8" rx=".9" fill="#2457d6"/><rect x="14" y="24" width="6" height="1.8" rx=".9" fill="#2457d6"/></svg>
+    <div class="brand">
+      <h1>Tenant PDF Merger</h1>
+      <p>City Skyline Realty · combine application documents into one PDF</p>
+    </div>
+    <div class="private" title="Files are processed in your browser and never uploaded">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      Files never leave this computer
+    </div>
+  </header>
+
   <ol class="steps">
-    <li><b>Add the files.</b> It groups them by tenant and puts them in order automatically.</li>
-    <li><b>Check the groups.</b> Choose a tenant for each ID photo. Drag the <b>⋮⋮</b> handle to move a file, even into another tenant, or to move a whole tenant.</li>
-    <li><b>Preview the pages.</b> See every page in its final order, rearrange, rotate or leave out pages, then download.</li>
+    <li class="s-files"><span>1</span>Add files</li>
+    <li class="s-files"><span>2</span>Arrange</li>
+    <li class="s-pages"><span>3</span>Preview &amp; download</li>
   </ol>
 
+  <section id="stage-files">
   <div id="drop" tabindex="0" role="button" aria-label="Add files">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0-4.5 4.5M12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
     <strong>Drop files here, or click to choose</strong>
     <span>PDFs and photos (JPG, PNG). You can add more at any time.</span>
   </div>
   <input id="picker" type="file" multiple accept=".pdf,application/pdf,image/*" hidden>
   <label class="opt"><input type="checkbox" id="autosort" checked>
-    <span><b>Sort automatically</b> — group files by tenant and put each tenant's documents in the usual order.
-    Turn off to keep files in the order you add them.</span></label>
+    <span><b>Sort automatically</b>Groups files by tenant in the usual order: ID, application, screening, bank statement. Turn off to keep the order you add them.</span></label>
 
   <div class="toolbar" id="toolbar" hidden>
     <span class="meta" id="summary"></span>
@@ -117,7 +192,8 @@ details summary{cursor:pointer}
   <div id="groups"></div>
 
   <details>
-    <summary>How it sorts and what it handles</summary>
+    <summary>How it works</summary>
+    <p>Drag the ⋮⋮ handle to move a file, even into another tenant, or to move a whole tenant. Then click Preview pages to see every page in its final order, where you can rearrange, rotate or leave out pages before downloading.</p>
     <p>Tenants come from the applicant name on each application or screening report. Bank statements and other PDFs go to the tenant whose name appears on them. Photos can't be read reliably, so you choose their tenant, unless there's only one tenant.</p>
     <p>Within each tenant the order is: ID photo, application report, screening report, bank statement, pay stubs, other. Drag or use the arrows to change it.</p>
     <p>Photos are turned upright automatically. Use Rotate if a photo still looks sideways. Statements locked against editing are unlocked so they can merge. A file that needs a password to open can't be merged.</p>
@@ -128,7 +204,7 @@ details summary{cursor:pointer}
     <div class="pagehead">
       <div>
         <h2>Check the page order</h2>
-        <p>This is exactly what the PDF will look like. Drag pages to rearrange them, or use ‹ ›. ⟳ rotates a page and ✕ leaves it out. Nothing is merged until you click Download PDF.</p>
+        <p>This is exactly what the PDF will look like. Drag pages to rearrange them, or use the arrow buttons. You can also rotate a page or leave it out. Nothing is merged until you click Download PDF.</p>
       </div>
       <button id="reset" type="button">Reset to proposed order</button>
     </div>
@@ -180,6 +256,17 @@ function h(tag, attrs, ...kids) {
   return el;
 }
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const ICONS = {
+  up: 'M12 19V5M5 12l7-7 7 7', down: 'M12 5v14M19 12l-7 7-7-7', x: 'M18 6 6 18M6 6l12 12',
+  left: 'M15 18l-6-6 6-6', right: 'M9 18l6-6-6-6', rotate: 'M21 12a9 9 0 1 1-2.6-6.4L21 8M21 3v5h-5',
+  edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',
+};
+function icon(name) {
+  const s = document.createElement('span');
+  s.className = 'ic';
+  s.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
+  return s;
+}
 const titleCase = s => s.toLowerCase().replace(/(^|[\s'\-])\p{L}/gu, c => c.toUpperCase());
 const cat = (...parts) => { const a = []; parts.forEach(p => a.push(...p)); return new Uint8Array(a); };
 const toHex = b => Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
@@ -423,6 +510,8 @@ let drag = null;
 
 function render() {
   const onPages = state.stage === 'pages';
+  document.body.dataset.stage = state.stage;
+  document.body.classList.toggle('has-files', state.files.length > 0);
   $('#stage-files').hidden = onPages;
   $('#stage-pages').hidden = !onPages;
   $('#bar-files').hidden = onPages;
@@ -443,21 +532,23 @@ function renderFiles() {
   gs.forEach((g, gi) => {
     const gp = g.files.reduce((s, f) => s + (f.error ? 0 : f.pages), 0);
     const head = h('div', { class: 'ghead' });
-    const sec = h('section', { class: 'group' + (g.tenant || !state.autoSort ? '' : ' unassigned') }, head);
+    // While files are still being read, the loose group is just a holding area, not a warning
+    const reading = !g.tenant && g.files.some(f => f.reading);
+    const sec = h('section', { class: 'group' + (g.tenant || !state.autoSort || reading ? '' : ' unassigned') }, head);
     if (g.tenant) {
       const grip = h('span', { class: 'grip', draggable: 'true', title: 'Drag to move this tenant' }, '⋮⋮');
       grip.addEventListener('dragstart', e => startDrag(e, { kind: 'tenant', t: g.tenant }, sec));
       grip.addEventListener('dragend', endDrag);
       head.append(grip, h('span', { class: 'num' }, String(gi + 1)), h('h2', {}, g.tenant.name),
         h('span', { class: 'meta' }, `· ${plural(g.files.length, 'file')} · ${plural(gp, 'page')}`),
-        h('button', { class: 'icon', type: 'button', title: 'Rename tenant', 'aria-label': 'Rename tenant', onclick: () => renameTenant(g.tenant) }, '✎'),
-        h('button', { class: 'icon', type: 'button', title: 'Move tenant up', 'aria-label': 'Move tenant up', disabled: gi === 0, onclick: () => moveTenant(gi, -1) }, '↑'),
-        h('button', { class: 'icon', type: 'button', title: 'Move tenant down', 'aria-label': 'Move tenant down', disabled: gi === state.tenants.length - 1, onclick: () => moveTenant(gi, 1) }, '↓'));
+        h('button', { class: 'icon', type: 'button', title: 'Rename tenant', 'aria-label': 'Rename tenant', onclick: () => renameTenant(g.tenant) }, icon('edit')),
+        h('button', { class: 'icon', type: 'button', title: 'Move tenant up', 'aria-label': 'Move tenant up', disabled: gi === 0, onclick: () => moveTenant(gi, -1) }, icon('up')),
+        h('button', { class: 'icon', type: 'button', title: 'Move tenant down', 'aria-label': 'Move tenant down', disabled: gi === state.tenants.length - 1, onclick: () => moveTenant(gi, 1) }, icon('down')));
     } else {
-      head.append(h('h2', {}, state.autoSort ? 'Not assigned to a tenant' : 'Your files, in the order added'),
+      head.append(h('h2', {}, reading ? 'Reading files…' : state.autoSort ? 'Not assigned to a tenant' : 'Your files, in the order added'),
         h('span', { class: 'meta' }, `· ${plural(g.files.length, 'file')}`));
     }
-    if (!g.tenant && state.autoSort && g.files.some(f => !f.error)) sec.append(h('p', { class: 'hint' }, 'Choose a tenant for each of these, or drag them into a tenant. Anything left here goes at the end of the PDF.'));
+    if (!g.tenant && state.autoSort && !reading && g.files.some(f => !f.error)) sec.append(h('p', { class: 'hint' }, 'Choose a tenant for each of these, or drag them into a tenant. Anything left here goes at the end of the PDF.'));
     g.files.forEach((f, fi) => sec.append(row(f, fi, g.files)));
     // Dropping a file on a group (not on a row) adds it to the end; dropping a tenant reorders tenants
     sec.addEventListener('dragover', e => {
@@ -497,12 +588,12 @@ function row(f, fi, list) {
       h('option', { value: '', selected: f.tenant == null }, '— Choose tenant —'),
       h('option', { value: 'new' }, '+ New tenant…'));
     info.append(h('div', { class: 'ctrls' }, typeSel, tenSel,
-      h('button', { type: 'button', title: 'Rotate 90° clockwise', onclick: () => { f.turn = (f.turn + 90) % 360; render(); } }, '⟳ Rotate')));
+      h('button', { type: 'button', title: 'Rotate 90° clockwise', onclick: () => { f.turn = (f.turn + 90) % 360; render(); } }, icon('rotate'), 'Rotate')));
   }
   const side = h('div', { class: 'side' },
-    h('button', { class: 'icon', type: 'button', title: 'Move up', 'aria-label': 'Move up', disabled: fi === 0, onclick: () => swap(f, list[fi - 1]) }, '↑'),
-    h('button', { class: 'icon', type: 'button', title: 'Move down', 'aria-label': 'Move down', disabled: fi === list.length - 1, onclick: () => swap(f, list[fi + 1]) }, '↓'),
-    h('button', { class: 'icon', type: 'button', title: 'Remove', 'aria-label': 'Remove file', onclick: () => remove(f) }, '✕'));
+    h('button', { class: 'icon', type: 'button', title: 'Move up', 'aria-label': 'Move up', disabled: fi === 0, onclick: () => swap(f, list[fi - 1]) }, icon('up')),
+    h('button', { class: 'icon', type: 'button', title: 'Move down', 'aria-label': 'Move down', disabled: fi === list.length - 1, onclick: () => swap(f, list[fi + 1]) }, icon('down')),
+    h('button', { class: 'icon', type: 'button', title: 'Remove', 'aria-label': 'Remove file', onclick: () => remove(f) }, icon('x')));
   const grip = h('span', { class: 'grip', draggable: 'true', title: 'Drag to move this file' }, '⋮⋮');
   const el = h('div', { class: 'row' }, grip, thumb, info, side);
   grip.addEventListener('dragstart', e => startDrag(e, { kind: 'file', f }, el));
@@ -616,16 +707,18 @@ function renderPages() {
     const src = f.kind === 'pdf' ? thumbCache.get(p.key) : f.thumb;
     const img = h('img', { alt: '', 'data-key': p.key, src: src || false });
     img.style.transform = `rotate(${p.turn}deg)`;
-    const cap = `${t ? t.name : looseLabel()} ·${SHORT[f.type]}${f.pages > 1 ? ` ${p.index + 1}/${f.pages}` : ''}`;
+    const who = t ? t.name : looseLabel();
+    const what = `${SHORT[f.type]}${f.pages > 1 ? ` ${p.index + 1}/${f.pages}` : ''}`;
+    const cap = `${who} · ${what}`;
     const card = h('div', { class: 'page', draggable: 'true', style: `--tc:${colorOf(f.tenant)}` },
       h('div', { class: 'pthumb' }, img),
       h('div', { class: 'pnum' }, `Page ${i + 1}`),
-      h('div', { class: 'pcap', title: `${cap}\n${f.name}` }, cap),
+      h('div', { class: 'pcap', title: `${cap}\n${f.name}` }, h('div', { class: 'pwhat' }, what), h('div', {}, who)),
       h('div', { class: 'pbtns' },
-        h('button', { type: 'button', title: 'Move earlier', 'aria-label': `Move page ${i + 1} earlier`, disabled: i === 0, onclick: () => movePage(i, i - 1) }, '‹'),
-        h('button', { type: 'button', title: 'Move later', 'aria-label': `Move page ${i + 1} later`, disabled: i === last, onclick: () => movePage(i, i + 2) }, '›'),
-        h('button', { type: 'button', title: 'Rotate 90° clockwise', 'aria-label': `Rotate page ${i + 1}`, onclick: () => { p.turn = (p.turn + 90) % 360; render(); } }, '⟳'),
-        h('button', { type: 'button', title: 'Leave this page out', 'aria-label': `Remove page ${i + 1}`, onclick: () => { state.pages.splice(i, 1); render(); } }, '✕')));
+        h('button', { type: 'button', title: 'Move earlier', 'aria-label': `Move page ${i + 1} earlier`, disabled: i === 0, onclick: () => movePage(i, i - 1) }, icon('left')),
+        h('button', { type: 'button', title: 'Move later', 'aria-label': `Move page ${i + 1} later`, disabled: i === last, onclick: () => movePage(i, i + 2) }, icon('right')),
+        h('button', { type: 'button', title: 'Rotate 90° clockwise', 'aria-label': `Rotate page ${i + 1}`, onclick: () => { p.turn = (p.turn + 90) % 360; render(); } }, icon('rotate')),
+        h('button', { type: 'button', title: 'Leave this page out', 'aria-label': `Remove page ${i + 1}`, onclick: () => { state.pages.splice(i, 1); render(); } }, icon('x'))));
     card.addEventListener('dragstart', e => startDrag(e, { kind: 'page', i }, card));
     card.addEventListener('dragend', endDrag);
     card.addEventListener('dragover', e => {
