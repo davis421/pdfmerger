@@ -1,7 +1,7 @@
-# Builds public/index.html: src/app.html with the vendor libraries inlined, so the page is one
+# Builds docs/index.html (served by GitHub Pages): src/app.html with the vendor libraries inlined, so the page is one
 # self-contained file that also works offline when saved or emailed.
 # Usage:  powershell -ExecutionPolicy Bypass -File build.ps1 [-Out path]
-param([string]$Out = (Join-Path $PSScriptRoot 'public\index.html'))
+param([string]$Out = (Join-Path $PSScriptRoot 'docs\index.html'))
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $read = { param($p) [IO.File]::ReadAllText((Join-Path $PSScriptRoot $p), $utf8) }
 $html = & $read 'src\app.html'

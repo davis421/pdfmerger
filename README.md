@@ -21,8 +21,8 @@ reports, bank statements) into one PDF, grouped by tenant and in a standard orde
 |------|------------|
 | `src/app.html` | The app: HTML, CSS and JavaScript. Edit this. |
 | `vendor/` | pdf-lib 1.17.1 (MIT) and pdf.js 3.11.174 (Apache-2.0), from cdnjs. |
-| `build.ps1` | Inlines `vendor/` into `src/app.html` and writes `public/index.html`. |
-| `public/` | What gets deployed. `index.html` is generated, don't edit it by hand. |
+| `build.ps1` | Inlines `vendor/` into `src/app.html` and writes `docs/index.html`. |
+| `docs/` | What GitHub Pages serves. `index.html` is generated, don't edit it by hand. `CNAME` holds the custom domain. |
 
 ## Making an update
 
@@ -30,14 +30,15 @@ reports, bank statements) into one PDF, grouped by tenant and in a standard orde
 # 1. Edit src/app.html
 # 2. Rebuild the deployed page
 powershell -ExecutionPolicy Bypass -File build.ps1
-# 3. Commit and push; Cloudflare Pages redeploys automatically
+# 3. Commit and push; GitHub Pages redeploys automatically in a minute or two
 git add -A
 git commit -m "Describe the change"
 git push
 ```
 
-## Hosting (Cloudflare Pages)
+## Hosting (GitHub Pages + IONOS DNS)
 
-- Framework preset: None. Build command: (empty). Build output directory: `public`.
-- Custom domain: `pdf.cityskyline.nyc`.
-- `public/_headers` keeps the site out of search engines and blocks embedding in other sites.
+- GitHub repo → Settings → Pages: Source "Deploy from a branch", branch `main`, folder `/docs`.
+  Custom domain `pdf.cityskyline.nyc`, Enforce HTTPS on.
+- IONOS DNS for cityskyline.nyc: CNAME record, host `pdf`, points to `davis421.github.io`.
+- A `<meta name="robots" content="noindex">` tag keeps the site out of search engines.

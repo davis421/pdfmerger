@@ -5,8 +5,10 @@ explain changes in plain language.
 
 ## How it works
 - Single page app in `src/app.html`; no framework, no npm. `build.ps1` inlines the three vendor
-  libraries into `public/index.html`, which is what Cloudflare Pages serves (output dir `public`,
-  no build step on Cloudflare). Always run `build.ps1` and commit `public/index.html` with source changes.
+  libraries into `docs/index.html`, which GitHub Pages serves (branch `main`, folder `/docs`,
+  custom domain pdf.cityskyline.nyc via `docs/CNAME`; DNS is a CNAME at IONOS). The owner wants
+  only GitHub + IONOS, no other hosting. Always run `build.ps1` and commit `docs/index.html` with
+  source changes.
 - Privacy is a core promise: tenant documents (SSNs, bank statements) must never leave the browser.
   No analytics, no network calls with file data, no external scripts at runtime.
 - pdf.js worker is inlined as `<script type="text/plain" id="pdfjs-worker">` and loaded via a Blob URL.
