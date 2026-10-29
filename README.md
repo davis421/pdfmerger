@@ -15,11 +15,31 @@ reports, bank statements) into one PDF, grouped by tenant and in a standard orde
 3. Click **Preview pages** to see every page in final order; drag, rotate or remove pages.
 4. Name the file and click **Download PDF**.
 
+## RS Renewal Forms (renew.html)
+
+Makes next term's DHCR renewal lease form (RTP-8), lease rider (RA-LR1, Section 2) and preferential
+rent rider for a rent-stabilized apartment. Open it from the link at the top of the merger page, or go to
+`/renew.html`. Nothing is uploaded or saved.
+
+1. Drop the current term's three files: RTP-8, DHCR rider and PREF rider (PDF or Word).
+2. The page reads the tenant, address, owner, lease dates, legal rent, preferential rent, deposit and
+   sprinkler answer from them, works out next term with the RGB rates, and lists each item.
+   Where the files disagree it says so.
+3. Check each item and click **Approve** (edit it first if it's wrong). Changing anything unapproves it.
+4. When every item is approved, click **Download 3 files**.
+
+The RGB rates are built into the page (`RGB` in `src/renew.html`). Each June, add the new order and
+rebuild. Until then, renewals starting after the last order are offered with the "rate unknown" box checked.
+The blank forms are DHCR's June 2026 versions; when DHCR revises a form, replace the file in
+`vendor/forms/` and check the field names still match.
+
 ## Project layout
 
 | Path | What it is |
 |------|------------|
 | `src/app.html` | The app: HTML, CSS and JavaScript. Edit this. |
+| `src/renew.html` | RS Renewal Forms page. |
+| `vendor/forms/` | Blank DHCR RTP-8 and RA-LR1 (base64) and the PREF rider Word template. |
 | `vendor/` | pdf-lib 1.17.1 (MIT) and pdf.js 3.11.174 (Apache-2.0), from cdnjs. |
 | `build.ps1` | Inlines `vendor/` into `src/app.html` and writes `docs/index.html`. |
 | `docs/` | What GitHub Pages serves. `index.html` is generated, don't edit it by hand. `CNAME` holds the custom domain. |

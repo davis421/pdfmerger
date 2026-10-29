@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>RS Renewal Forms</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232457d6'/%3E%3Cpath d='M9 5h10l5 5v15a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z' fill='%23fff'/%3E%3Cpath d='M19 5v4a1 1 0 0 0 1 1h4z' fill='%23b9cbf5'/%3E%3Cpath d='M11 19.5l3 3 6-7' stroke='%232457d6' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f5f7;--card:#fff;--soft:#f7f8fa;--text:#14161a;--muted:#646b76;--line:#e3e6eb;--line-strong:#d3d8df;
+  --accent:#2457d6;--accent-ink:#fff;--accent-soft:#eaf0fd;--ok:#17803d;--ok-bg:#eaf7ef;--ok-line:#bfe5cc;
+  --warn:#8a4b00;--warn-bg:#fff6e8;--warn-line:#f2d3a6;--err:#b42318;--err-bg:#fdf0ef;--err-line:#f4c7c3;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06);--radius:14px;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f1114;--card:#181b20;--soft:#1d2127;--text:#e9ebee;--muted:#9aa2ad;--line:#2a2f36;--line-strong:#363c45;
+  --accent:#7097ff;--accent-ink:#0b0d10;--accent-soft:#1b2440;--ok:#6fd394;--ok-bg:#132419;--ok-line:#24452f;
+  --warn:#f0b35a;--warn-bg:#271f12;--warn-line:#4a3a1f;--err:#ff8a80;--err-bg:#2a1615;--err-line:#4d2522;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:880px;margin:0 auto;padding:0 16px 140px}
+button,select,input{font:inherit;color:inherit}
+
+.top{display:flex;align-items:center;gap:12px;padding:22px 0 18px}
+.logo{width:40px;height:40px;flex:none;border-radius:10px;box-shadow:var(--shadow)}
+.brand{flex:1;min-width:0}
+.brand h1{font-size:19px;line-height:1.2;margin:0;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.brand a{color:var(--accent);text-decoration:none}
+.brand a:hover{text-decoration:underline}
+.private{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap}
+.private svg{width:13px;height:13px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;box-shadow:var(--shadow);overflow:hidden}
+.chead{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--soft);border-bottom:1px solid var(--line)}
+.chead .num{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700}
+.chead h2{font-size:15px;margin:0;flex:1}
+.chead .meta{color:var(--muted);font-size:13px}
+.cbody{padding:14px}
+.help{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+#drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px dashed var(--line-strong);border-radius:12px;background:var(--soft);padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+#drop svg{width:28px;height:28px;color:var(--accent)}
+#drop:hover,#drop:focus-visible,#drop.over{border-color:var(--accent);background:var(--accent-soft);outline:none}
+#drop strong{font-size:15px}
+#drop span{color:var(--muted);font-size:13px}
+.docs{list-style:none;margin:12px 0 0;padding:0}
+.docs li{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.docs li:first-child{border-top:0}
+.docs .kind{font-weight:700;min-width:84px}
+.docs .kind.miss{color:var(--muted);font-weight:600}
+.docs b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+.docs .what{color:var(--muted);flex:1}
+.docs .what.err{color:var(--err)}
+
+.sect{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:14px 14px 6px}
+.arow{display:grid;grid-template-columns:200px minmax(0,1fr) 112px;gap:12px;align-items:start;padding:11px 14px;border-top:1px solid var(--line)}
+.arow.ok{background:var(--ok-bg)}
+.alabel{font-size:14px;font-weight:600;padding-top:6px}
+.alabel small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.aval{min-width:0;font-size:14px}
+.aval .txt{padding-top:6px;font-variant-numeric:tabular-nums}
+.aval .txt div+div{margin-top:2px}
+.eds{display:flex;flex-wrap:wrap;gap:8px}
+.ed{display:flex;flex-direction:column;gap:2px;flex:1;min-width:110px}
+.ed>span{font-size:11px;color:var(--muted);font-weight:600}
+.ed input,.ed select{height:34px;padding:0 9px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);width:100%;min-width:0}
+.ed.wide{flex-basis:100%}
+.ed.missing input{border-color:var(--err)}
+.ed input:focus-visible,.ed select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.chk{display:flex;align-items:center;gap:7px;font-size:13px;margin-top:6px;cursor:pointer}
+.chk input{width:17px;height:17px;accent-color:var(--accent)}
+.note{font-size:12px;border-radius:8px;padding:6px 9px;margin-top:6px;border:1px solid}
+.note.warn{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-line)}
+.note.err{color:var(--err);background:var(--err-bg);border-color:var(--err-line)}
+.approve{height:34px;width:100%;border-radius:8px;font-weight:600}
+.arow.ok .approve{background:var(--ok);border-color:var(--ok);color:#fff}
+.msg{border-radius:10px;padding:9px 12px;font-size:13px;margin:8px 14px 0;border:1px solid}
+.msg.err{color:var(--err);background:var(--err-bg);border-color:var(--err-line)}
+.msg.warn{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-line)}
+.pad{height:14px}
+
+button{font-size:13px;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:background .12s,border-color .12s}
+button:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+button:disabled{opacity:.35;cursor:default}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.primary:hover:not(:disabled){background:var(--accent);filter:brightness(1.08)}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 16px}
+.bar .in{max-width:880px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bar .meta{flex:1;color:var(--muted);font-size:13px;min-width:180px}
+.bar button{height:42px;border-radius:10px;padding:0 18px;font-size:15px;white-space:nowrap}
+#status{width:100%;font-size:13px;color:var(--muted)}
+#status:empty{display:none}
+#status.err{color:var(--err)}
+
+@media (max-width:640px){
+  .private{display:none}
+  .arow{grid-template-columns:minmax(0,1fr) 96px}
+  .alabel{grid-column:1/-1;padding-top:0}
+  .bar button{flex:1}
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2457d6"/><path d="M9 5h10l5 5v15a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="#fff"/><path d="M19 5v4a1 1 0 0 0 1 1h4z" fill="#b9cbf5"/><path d="M11 19.5l3 3 6-7" stroke="#2457d6" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="brand">
+      <h1>RS Renewal Forms</h1>
+      <p>City Skyline Realty · next term's RTP-8, DHCR rider and PREF rider · <a href="index.html">PDF Merger</a></p>
+    </div>
+    <div class="private" title="Files are read in your browser. Nothing is uploaded or saved.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      Nothing uploaded or saved
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="chead"><span class="num">1</span><h2>Current term's forms</h2><button type="button" id="clear" hidden>Start over</button></div>
+    <div class="cbody">
+      <div id="drop" tabindex="0" role="button" aria-label="Add the current term's forms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0-4.5 4.5M12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <strong>Drop the 3 files from the current term</strong>
+        <span>RTP-8, DHCR lease rider and PREF rider (PDF or Word)</span>
+      </div>
+      <input id="picker" type="file" multiple accept=".pdf,.docx,application/pdf" hidden>
+      <ul class="docs" id="docs"></ul>
+    </div>
+  </section>
+
+  <section class="card" id="suite" hidden>
+    <div class="chead"><span class="num">2</span><h2>Review and approve</h2><span class="meta" id="progress"></span></div>
+    <div id="errors"></div>
+    <div class="sect">Read from the current term's forms</div>
+    <div id="readrows"></div>
+    <div class="sect">Next term (calculated)</div>
+    <div id="calcrows"></div>
+    <div id="warns"></div>
+    <div class="pad"></div>
+  </section>
+</main>
+
+<div class="bar">
+  <div class="in">
+    <span class="meta" id="barinfo">Drop the current term's 3 files to start.</span>
+    <button type="button" id="dl" class="primary" disabled>Download 3 files</button>
+    <div id="status" role="status"></div>
+  </div>
+</div>
+
+<script>/*@@PDFLIB@@*/</script>
+<script>/*@@PDFJS@@*/</script>
+<script id="pdfjs-worker" type="text/plain">/*@@PDFJSWORKER@@*/</script>
+<script>const FORMS = /*@@FORMS@@*/;</script>
+<script>
+'use strict';
+pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(
+  new Blob([document.getElementById('pdfjs-worker').textContent], { type: 'text/javascript' }));
+const { PDFDocument } = PDFLib;
+const $ = s => document.querySelector(s);
+
+// ---------- NYC Rent Guidelines Board orders: add the new order each June ----------
+// [order, leases starting from, through, 1-year %, 2-year %, second-step % (split orders) ]
+const RGB = [
+  ['50', '2018-10-01', '2019-09-30', '1.5', '2.5', ''],
+  ['51', '2019-10-01', '2020-09-30', '1.5', '2.5', ''],
+  ['52', '2020-10-01', '2021-09-30', '0', '0', '1'],
+  ['53', '2021-10-01', '2022-09-30', '0', '2.5', '1.5'],
+  ['54', '2022-10-01', '2023-09-30', '3.25', '5', ''],
+  ['55', '2023-10-01', '2024-09-30', '3', '2.75', '3.2'],
+  ['56', '2024-10-01', '2025-09-30', '2.75', '2.75', '3.2'],
+  ['57', '2025-10-01', '2026-09-30', '3', '4.5', ''],
+  ['58', '2026-10-01', '2027-09-30', '0', '0', '']
+];
+
+// ---------- money and dates (integer cents and UTC days, so rounding is exact) ----------
+function cents(s) {
+  s = String(s ?? '').replace(/[$,\s]/g, '');
+  if (!s) return null;
+  if (!/^-?\d*(\.\d{0,2})?$/.test(s) || s === '.' || s === '-') return NaN;
+  const [w, f = ''] = s.replace('-', '').split('.');
+  const v = Number(w || 0) * 100 + Number((f + '00').slice(0, 2));
+  return s.startsWith('-') ? -v : v;
+}
+function rateP(s) {   // percent as parts per 100,000 (3.5% -> 3500)
+  s = String(s ?? '').replace(/[%\s]/g, '');
+  if (!s) return null;
+  const [w, f = ''] = s.split('.');
+  return Number(w || 0) * 1000 + Number((f + '000').slice(0, 3));
+}
+const mulRate = (c, p) => Math.floor((c * p + 50000) / 100000);   // half-up to the cent
+const money = c => (c < 0 ? '-' : '') + (Math.abs(c) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usd = c => '$' + money(c);
+const pct = p => String(p / 1000);
+const DAY = 86400000;
+function day(iso) { if (!iso) return null; const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d); }
+const addDays = (t, n) => t + n * DAY;
+function addYears(t, n) { const d = new Date(t); return Date.UTC(d.getUTCFullYear() + n, d.getUTCMonth(), d.getUTCDate()); }
+function mdy(t) { const d = new Date(t); return `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}/${d.getUTCFullYear()}`; }
+const isoOf = t => new Date(t).toISOString().slice(0, 10);
+function todayUTC() { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); }
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function parseDate(s) {
+  s = String(s || '').trim();
+  let m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})$/);
+  if (m) { let y = +m[3]; if (y < 100) y += 2000; return Date.UTC(y, m[1] - 1, +m[2]); }
+  m = s.match(/^([A-Za-z]{3,})\.?\s+(\d{1,2}),?\s+(\d{4})$/);
+  if (m) { const i = MONTHS.findIndex(x => x.slice(0, 3).toLowerCase() === m[1].slice(0, 3).toLowerCase()); if (i >= 0) return Date.UTC(+m[3], i, +m[2]); }
+  return null;
+}
+const amtOf = s => { const c = cents(String(s ?? '').replace(/[_()%]/g, '').trim()); return Number.isFinite(c) && c > 0 ? c : null; };
+const aptOf = s => (String(s || '').match(/\b(?:apt|apartment|unit)\.?\s*#?\s*([A-Za-z0-9-]+)|#\s*([A-Za-z0-9-]+)/i) || []).slice(1).find(Boolean) || '';
+const streetOf = s => String(s || '').replace(/,?\s*(?:\b(?:apt|apartment|unit)\b|#).*$/i, '').trim();
+
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  el.append(...kids.filter(k => k != null && k !== false));
+  return el;
+}
+
+// ---------- reading the current term's forms ----------
+const b64bytes = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function pdfInfo(bytes) {
+  const pdf = await pdfjsLib.getDocument({ data: bytes, isEvalSupported: false }).promise;
+  const fields = {};
+  try {
+    for (const [n, arr] of Object.entries(await pdf.getFieldObjects() || {})) {
+      const w = arr.find(x => x.value != null && x.value !== '' && x.value !== 'Off') || arr[0];
+      fields[n] = { value: w.value, type: w.type, rect: w.rect, page: w.page };
+    }
+  } catch {}
+  const pages = [];
+  for (let i = 1; i <= Math.min(pdf.numPages, 14); i++) {
+    const tc = await (await pdf.getPage(i)).getTextContent();
+    pages.push(tc.items.map(t => ({ s: t.str, x: t.transform[4], y: t.transform[5] })));
+  }
+  await pdf.destroy();
+  return { fields, pages, text: pages.map(p => p.map(t => t.s).join(' ')).join('\n') };
+}
+async function docxText(bytes) {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), td = new TextDecoder();
+  let e = bytes.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('not a Word file');
+  let p = dv.getUint32(e + 16, true);
+  for (let i = dv.getUint16(e + 10, true); i > 0; i--) {
+    const method = dv.getUint16(p + 10, true), size = dv.getUint32(p + 20, true), nlen = dv.getUint16(p + 28, true);
+    const name = td.decode(bytes.subarray(p + 46, p + 46 + nlen)), off = dv.getUint32(p + 42, true);
+    if (name === 'word/document.xml') {
+      const at = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+      const data = bytes.subarray(at, at + size);
+      const xml = method === 0 ? td.decode(data)
+        : await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+      return xml.replace(/<\/w:p>/g, '\n').replace(/<w:tab\/>/g, ' ').replace(/<[^>]+>/g, '')
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+    }
+    p += 46 + nlen + dv.getUint16(p + 30, true) + dv.getUint16(p + 32, true);
+  }
+  throw new Error('no document text');
+}
+// RTP-8 values by field name; for older versions or flattened copies, by position on the current blank form
+let blankRtp8 = null;
+async function rtp8Get(info) {
+  const f = info.fields, g = {};
+  if ('new legal rent1' in f) {
+    for (const [n, x] of Object.entries(f)) g[n] = x.type === 'checkbox' ? !!x.value && x.value !== 'Off' : String(x.value ?? '');
+    return g;
+  }
+  if (!blankRtp8) {
+    const b = await pdfInfo(b64bytes(FORMS.rtp8));
+    blankRtp8 = { rects: Object.entries(b.fields).filter(([, x]) => x.page === 0 && x.rect), text: new Set(b.pages[0].map(t => `${t.s.trim()}@${Math.round(t.x)},${Math.round(t.y)}`)) };
+  }
+  const items = [];
+  for (const x of Object.values(f)) if (x.page === 0 && x.rect && x.value && x.value !== 'Off')
+    items.push({ s: x.type === 'checkbox' ? 'X' : String(x.value), x: (x.rect[0] + x.rect[2]) / 2, y: (x.rect[1] + x.rect[3]) / 2 });
+  for (const t of info.pages[0] || []) {
+    const s = t.s.trim();
+    if (s && !blankRtp8.text.has(`${s}@${Math.round(t.x)},${Math.round(t.y)}`)) items.push({ s, x: t.x + 1, y: t.y + 2 });
+  }
+  for (const [n, x] of blankRtp8.rects) {
+    const r = x.rect, hit = items.filter(i => i.x >= r[0] - 3 && i.x <= r[2] + 3 && i.y >= r[1] - 3 && i.y <= r[3] + 3).sort((a, b) => a.x - b.x);
+    if (hit.length) g[n] = x.type === 'checkbox' ? true : hit.map(i => i.s).join(' ').replace(/^\$\s*/, '').trim();
+  }
+  return g;
+}
+function parseRtp8(g) {
+  const d = {
+    term: g['Check Box6'] === true ? 2 : g['Check Box5'] === true ? 1 : null,
+    start: parseDate(g['This renewal lease shall commence on']),
+    end1: parseDate(g['date2']), end2: parseDate(g['date3']),
+    legal1: amtOf(g['new legal rent1']), legal2: amtOf(g['new legal rent2']),
+    pref1: amtOf(g['1 year lease']), pref2: amtOf(g['2 year lease']),
+    dep: amtOf(g['Current Deposit']), add1: amtOf(g['Additional Deposit Required  1 year lease']), add2: amtOf(g['Additional Deposit Required  2 year lease']),
+    tenants: (g['Tenants Names and Address 1'] || '').trim(),
+    street: streetOf(g['Tenants Names and Address 2']), apt: aptOf(g['Tenants Names and Address 2']), city: (g['Tenants Names and Address 3'] || '').trim(),
+    own: [1, 2, 3, 4].map(i => (g['Owners Agents Name and Address ' + i] || '').trim()),
+    ac: amtOf(g['air conditioner charges']), appl: amtOf(g['appliance charges']), t421: amtOf(g['421a (2.2%)']),
+    othDesc: (g['Other1'] || '').trim(), oth: amtOf(g['Other2']), scrie: amtOf(g['reduced monthly rent']),
+    spr: g['Check Box4'] === true ? 'Yes' : g['Check Box3'] === true ? 'No' : '', sprDate: (g['date4'] || '').trim()
+  };
+  const r1 = amtOf(g['for a 1 year renewal']), r2 = amtOf(g['for a 2 year renewal']);   // item 6 below Column F also means a pref
+  if (!d.pref1 && r1 && d.legal1 && r1 < d.legal1) d.pref1 = r1;
+  if (!d.pref2 && r2 && d.legal2 && r2 < d.legal2) d.pref2 = r2;
+  d.note = `renewal starting ${d.start ? mdy(d.start) : '?'}` + (d.term ? `, tenant chose ${d.term} year${d.term > 1 ? 's' : ''}` : ', tenant\'s choice not marked');
+  return d;
+}
+function parseRider(info) {
+  const v = n => String(info.fields[n]?.value || '').trim(), t = info.text.replace(/\s+/g, ' ');
+  const d = {
+    start: parseDate(v('Lease Start Date')) ?? parseDate((t.match(/Lease Start Date:?\s*([\d\/.-]{6,10})/i) || [])[1]),
+    end: parseDate(v('Lease End Date')) ?? parseDate((t.match(/Lease End Date:?\s*([\d\/.-]{6,10})/i) || [])[1]),
+    tenants: v('Print Name of Tenants'), apt: aptOf(v('Lease Rider for the housing accommodation 1')),
+    street: streetOf(v('Lease Rider for the housing accommodation 1')), owner: v('Print Name of Owner or Owners Agent')
+  };
+  d.note = `lease ${d.start ? mdy(d.start) : '?'} to ${d.end ? mdy(d.end) : '?'}`;
+  return d;
+}
+function parsePref(text) {
+  const t = text.replace(/_+/g, '').replace(/\s+/g, ' '), n = '\\$\\s*([\\d,]+\\.\\d{2})';
+  const L = t.match(new RegExp(`legal regulated rent.{0,200}?${n}\\s*for a 1-year Lease term which expires on\\s*([\\d/]+)\\s*or\\s*${n}\\s*for a 2-year Lease term which expires on\\s*([\\d/]+)`, 'i'));
+  const P = t.match(new RegExp(`rent of\\s*${n}\\s*per month in full payment and satisfaction of rent for a 1-year Lease term,?\\s*or\\s*${n}\\s*per month`, 'i'));
+  const d = {
+    legal1: L && amtOf(L[1]), end1: L && parseDate(L[2]), legal2: L && amtOf(L[3]), end2: L && parseDate(L[4]),
+    pref1: P && amtOf(P[1]), pref2: P && amtOf(P[2]),
+    tenants: ((t.match(/BUILDING\W*\)\s*AND\s+(.+?)\s*\(\W*TENANTS?\W*\)/i) || [])[1] || '').trim(),
+    apt: (t.match(/APARTMENT\s+([A-Z0-9-]+)\s+AT THE BUILDING/i) || [])[1] || '',
+    stepped: !P && /preferential.{0,40}rent of/i.test(t)
+  };
+  d.note = (L ? `legal ${usd(d.legal1)} / ${usd(d.legal2)}` : 'legal rent not found') + (P ? `, pref ${usd(d.pref1)} / ${usd(d.pref2)}` : d.stepped ? ', stepped pref amounts' : '');
+  return d;
+}
+async function readDoc(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+    const t = await docxText(bytes);
+    if (/PREFERENTIAL RENT/i.test(t)) return { kind: 'pref', data: parsePref(t) };
+    return { error: 'This Word file isn\'t a PREF rider.' };
+  }
+  const info = await pdfInfo(bytes);
+  // the RTP-8's instructions mention the lease rider, so check for the RTP-8 first
+  if ('new legal rent1' in info.fields || /OFFER TO TENANT TO RENEW/i.test(info.text)) return { kind: 'rtp8', data: parseRtp8(await rtp8Get(info)) };
+  if ('Lease Start Date' in info.fields || /LEASE Rider For Rent Stabilized/i.test(info.text)) return { kind: 'rider', data: parseRider(info) };
+  if (/PREFERENTIAL RENT RIDER/i.test(info.text)) return { kind: 'pref', data: parsePref(info.text) };
+  if (!info.text.trim()) return { error: 'No readable text, probably a scan. Its details will need to be typed in below.' };
+  return { error: 'Not an RTP-8, DHCR rider or PREF rider.' };
+}
+
+// ---------- suggestions: what the forms say, earlier sources win, disagreements flagged ----------
+const KINDS = { rtp8: 'RTP-8', rider: 'DHCR rider', pref: 'PREF rider' };
+let docs = [];
+const V = {}, SRC = {}, CONF = {};   // value, where it came from, and any disagreement, per key
+function suggest() {
+  const get = k => docs.find(d => d.kind === k)?.data;
+  const r8 = get('rtp8'), rd = get('rider'), pf = get('pref');
+  for (const o of [V, SRC, CONF]) for (const k of Object.keys(o)) delete o[k];
+  let term = r8?.term || null, termSrc = 'RTP-8 Part B';
+  if (!term && rd?.start && rd?.end) { const y = Math.round((rd.end - rd.start) / (365.25 * DAY)); if (y === 1 || y === 2) { term = y; termSrc = 'DHCR rider dates'; } }
+  V.curTerm = term ? String(term) : ''; SRC.curTerm = term ? termSrc : '';
+  const bt = (d, k) => d && term ? d[k + term] : null;
+  function pick(key, cands, fmt = x => x, same = (a, b) => a === b) {
+    const c = cands.filter(x => x[0] != null && x[0] !== '');
+    if (!c.length) { V[key] = ''; return; }
+    V[key] = fmt(c[0][0]); SRC[key] = c[0][1];
+    const off = c.filter(x => !same(x[0], c[0][0]));
+    if (off.length) CONF[key] = off.map(x => `${x[1]} says ${typeof x[0] === 'number' && key.match(/lease/i) ? mdy(x[0]) : typeof x[0] === 'number' ? usd(x[0]) : x[0]}`).join('; ');
+  }
+  const ci = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+  pick('tenants', [[r8?.tenants, 'RTP-8'], [rd?.tenants, 'DHCR rider'], [pf?.tenants, 'PREF rider']], x => x, ci);
+  pick('street', [[r8?.street, 'RTP-8'], [rd?.street, 'DHCR rider']]);
+  pick('apt', [[r8?.apt, 'RTP-8'], [rd?.apt, 'DHCR rider'], [pf?.apt, 'PREF rider']], x => x.toUpperCase(), ci);
+  pick('city', [[r8?.city, 'RTP-8']]);
+  for (let i = 0; i < 4; i++) { V['own' + (i + 1)] = r8?.own[i] || (i === 0 ? rd?.owner || '' : ''); SRC['own' + (i + 1)] = r8?.own[i] ? 'RTP-8' : rd?.owner && i === 0 ? 'DHCR rider' : ''; }
+  pick('leaseStart', [[rd?.start, 'DHCR rider'], [r8?.start, 'RTP-8']], isoOf);
+  pick('leaseEnd', [[rd?.end, 'DHCR rider'], [bt(r8, 'end'), 'RTP-8'], [bt(pf, 'end'), 'PREF rider']], isoOf);
+  pick('legal', [[bt(r8, 'legal'), 'RTP-8 Column F'], [bt(pf, 'legal'), 'PREF rider']], money);
+  pick('pref', [[bt(r8, 'pref'), 'RTP-8 item 5'], [bt(pf, 'pref'), 'PREF rider']], money);
+  V.deposit = r8?.dep != null ? money(r8.dep + (bt(r8, 'add') || 0)) : '';
+  SRC.deposit = r8?.dep != null ? (bt(r8, 'add') ? 'RTP-8 deposit + additional asked' : 'RTP-8 deposit') : '';
+  for (const k of ['ac', 'appl', 't421', 'oth', 'scrie']) { V[k] = r8?.[k] ? money(r8[k]) : ''; SRC[k] = r8 ? 'RTP-8' : ''; }
+  V.othDesc = r8?.othDesc || '';
+  V.spr = r8?.spr || ''; V.sprDate = r8?.sprDate || ''; SRC.spr = r8 ? 'RTP-8 item 10' : '';
+  V.serve = isoOf(todayUTC()); V.newTerm = ''; V.raiseDep = false;
+  return { stepped: pf?.stepped, needTerm: !term && !!(r8 || pf) };
+}
+
+// ---------- the calculation ----------
+function compute() {
+  const errors = [], warns = [], today = todayUTC();
+  const c = k => { const v = cents(V[k]); return Number.isNaN(v) ? (errors.push(`"${V[k]}" isn't a dollar amount.`), 0) : v || 0; };
+  const legal = c('legal'), pref = c('pref'), dep = c('deposit'), hasPref = cents(V.pref) > 0, hasDep = cents(V.deposit) != null;
+  const ac = c('ac'), appl = c('appl'), t421 = c('t421'), oth = c('oth'), scrie = c('scrie');
+  const serve = day(V.serve) ?? today;
+  if (!V.leaseEnd) errors.push('The current lease end date is missing.');
+  if (!legal) errors.push('The current legal regulated rent is missing.');
+  if (serve < today) errors.push(`The service date (${mdy(serve)}) is before today. Offers are dated the day they're served or later.`);
+  if (errors.length) return { errors, warns };
+
+  const curEnd = day(V.leaseEnd), start = addDays(curEnd, 1), earliest = addDays(curEnd, -150), latest = addDays(curEnd, -90);
+  if (curEnd < today) warns.push(`The current lease already ended on ${mdy(curEnd)}. If these are older forms, use the most recent term's files.`);
+  if (serve < earliest) errors.push(`Too early: this offer can be served from ${mdy(earliest)} (150 days before the lease ends ${mdy(curEnd)}). Come back then, or set a later service date.`);
+  if (serve > latest) {
+    const d = new Date(addDays(serve, 120));
+    const late = d.getUTCDate() === 1 ? d.getTime() : Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+    warns.push(`Late offer: the deadline was ${mdy(latest)}. The tenant may choose to start on ${mdy(start)} or on ${mdy(late)} (first rent date at least 120 days after the offer). The forms use ${mdy(start)}; talk to counsel if the tenant picks the later date.`);
+  }
+  const end1 = addDays(addYears(start, 1), -1), end2 = addDays(addYears(start, 2), -1);
+
+  const orders = RGB.map(r => ({ n: r[0], from: day(r[1]), to: day(r[2]), r1: rateP(r[3]), r2: rateP(r[4]), step: rateP(r[5]) }));
+  let ord = orders.find(o => o.from <= start && start <= o.to), rateUnknown = false;
+  if (!ord) {
+    ord = orders[orders.length - 1]; rateUnknown = true;
+    warns.push(`The RGB hasn't set rates for leases starting ${mdy(start)} yet. Using Order #${ord.n} and checking the "rate unknown" box in Column C, so the rent adjusts when the new order comes out.`);
+  }
+  if (ord.step) warns.push(`Order #${ord.n} has a second-step rate. The forms show the first step only; add the step by hand.`);
+  const inc1 = mulRate(legal, ord.r1), inc2 = mulRate(legal, ord.r2);
+  const new1 = legal + inc1, new2 = legal + inc2;
+  let p1 = new1, p2 = new2;
+  if (hasPref) {
+    p1 = Math.min(new1, mulRate(pref, 100000 + ord.r1));
+    p2 = Math.min(new2, mulRate(pref, 100000 + ord.r2));
+    if (pref >= legal) warns.push('The preferential rent isn\'t below the legal rent. Check both.');
+  }
+  const sep = ac + appl + t421 + oth, tot1 = p1 + sep, tot2 = p2 + sep;
+  let add1 = 0, add2 = 0;
+  if (hasDep) {
+    if (V.raiseDep) { add1 = Math.max(0, p1 - dep); add2 = Math.max(0, p2 - dep); }
+    if (dep > p1) warns.push(`The deposit held (${usd(dep)}) is more than one month's rent (${usd(p1)}) by ${usd(dep - p1)}. Under HSTPA the excess should be refunded or credited.`);
+  }
+  if (!['Yes', 'No'].includes(V.spr)) warns.push('Sprinkler (item 10) isn\'t answered, so it will be left blank on the RTP-8.');
+  const bldg = (String(V.street).match(/^\s*(\d+)/) || [])[1];   // file names like "512-2C 2027-12-01 RS.pdf"
+  const base = `${bldg ? bldg + '-' : ''}${V.apt || 'Apt'} ${isoOf(start)}`;
+  return { errors, warns, serve, curEnd, start, earliest, latest, end1, end2, ord, rateUnknown, legal, pref, hasPref, dep, hasDep,
+    inc1, inc2, new1, new2, p1, p2, ac, appl, t421, oth, sep, tot1, tot2, add1, add2, scrie, base };
+}
+
+// ---------- approval suite ----------
+// Each row is approved for the exact value shown; any change to that value unapproves it.
+const APPROVED = {};
+const READ_ROWS = [
+  { id: 'tenants', label: 'Tenant(s)', eds: [['tenants', 'Name(s)', 'text', 'wide']], req: ['tenants'] },
+  { id: 'address', label: 'Apartment', eds: [['street', 'Street address', 'text', 'wide'], ['apt', 'Apt', 'text'], ['city', 'City, state, ZIP', 'text']], req: ['street', 'apt', 'city'] },
+  { id: 'owner', label: 'Owner / agent', small: 'name and address on the RTP-8', eds: [['own1', 'Line 1 (also printed on the riders)', 'text', 'wide'], ['own2', 'Line 2', 'text', 'wide'], ['own3', 'Line 3', 'text', 'wide'], ['own4', 'Line 4', 'text', 'wide']], req: ['own1'] },
+  { id: 'lease', label: 'Current lease', eds: [['curTerm', 'Term', 'term'], ['leaseStart', 'Started', 'date'], ['leaseEnd', 'Ends', 'date']], req: ['leaseEnd'] },
+  { id: 'legal', label: 'Legal regulated rent', small: 'for the current term', eds: [['legal', 'Monthly', 'money']], req: ['legal'] },
+  { id: 'pref', label: 'Preferential rent', small: 'blank if none', eds: [['pref', 'Monthly', 'money']] },
+  { id: 'deposit', label: 'Security deposit held', eds: [['deposit', 'Amount', 'money']] },
+  { id: 'charges', label: 'Separate charges', small: 'usually blank', eds: [['ac', 'A/C', 'money'], ['appl', 'Appliances', 'money'], ['t421', '421a (2.2%)', 'money'], ['othDesc', 'Other (describe)', 'text'], ['oth', 'Other $', 'money']] },
+  { id: 'spr', label: 'Sprinkler (item 10)', eds: [['spr', 'Operative sprinkler?', 'yesno'], ['sprDate', 'Last inspected', 'text']] },
+  { id: 'scrie', label: 'SCRIE / DRIE rent', small: 'blank if none', eds: [['scrie', 'Reduced rent', 'money']] }
+];
+const CALC_ROWS = [
+  { id: 'serve', label: 'Service date', small: 'date the RTP-8 goes to the tenant', eds: [['serve', 'Date', 'date']] },
+  { id: 'dates', label: 'Next term', show: r => [`Starts ${mdy(r.start)}`, `1-year ends ${mdy(r.end1)} · 2-year ends ${mdy(r.end2)}`, `Serve between ${mdy(r.earliest)} and ${mdy(r.latest)}`] },
+  { id: 'rgb', label: 'RGB rates', show: r => [`Order #${r.ord.n}: 1-year ${pct(r.ord.r1)}%, 2-year ${pct(r.ord.r2)}%` + (r.rateUnknown ? ' (new order not out yet)' : '')] },
+  { id: 'legalNew', label: 'New legal rent', small: 'RTP-8 Column F', show: r => [`1-year ${usd(r.new1)}  (${usd(r.legal)} + ${usd(r.inc1)})`, `2-year ${usd(r.new2)}  (${usd(r.legal)} + ${usd(r.inc2)})`] },
+  { id: 'prefNew', label: 'New preferential rent', small: 'RTP-8 item 5 and PREF rider', when: r => r.hasPref, show: r => [`1-year ${usd(r.p1)}`, `2-year ${usd(r.p2)}`, `${usd(r.pref)} + RGB increase, capped at the new legal rent`] },
+  { id: 'pay', label: 'Monthly payment', small: 'RTP-8 item 6', show: r => [`1-year ${usd(r.tot1)} · 2-year ${usd(r.tot2)}`, r.sep ? `includes ${usd(r.sep)} separate charges` : 'no separate charges'] },
+  { id: 'depNew', label: 'Additional deposit', small: 'RTP-8 item 3', when: r => r.hasDep, eds: [['raiseDep', 'Ask for more deposit to match the new rent', 'check']], show: r => [`1-year ${usd(r.add1)} · 2-year ${usd(r.add2)}`] },
+  { id: 'riderTerm', label: 'Rider lease end date', small: 'DHCR rider Section 2', eds: [['newTerm', 'Fill in', 'newterm']], show: r => [V.newTerm === '1' ? mdy(r.end1) : V.newTerm === '2' ? mdy(r.end2) : 'Left blank until the tenant picks a term'] }
+];
+const rowEls = {};
+function editor([key, label, type, cls]) {
+  let input;
+  const changed = () => { V[key] = type === 'check' ? input.checked : input.value.trim(); update(); };
+  if (type === 'check') {
+    input = h('input', { type: 'checkbox', onchange: changed }); input.checked = !!V[key];
+    return h('label', { class: 'chk' }, input, label);
+  }
+  if (type === 'yesno' || type === 'term' || type === 'newterm') {
+    const opts = { yesno: [['', 'Not answered'], ['Yes', 'Yes'], ['No', 'No']], term: [['', 'Unknown'], ['1', '1 year'], ['2', '2 years']], newterm: [['', 'Leave blank'], ['1', '1-year end date'], ['2', '2-year end date']] }[type];
+    input = h('select', { onchange: changed }, ...opts.map(([v, t]) => h('option', { value: v }, t)));
+  } else input = h('input', { type: type === 'date' ? 'date' : 'text', inputmode: type === 'money' ? 'decimal' : null, placeholder: type === 'money' ? '0.00' : '', oninput: changed });
+  input.value = V[key] ?? '';
+  input.dataset.key = key;
+  return h('label', { class: 'ed' + (cls ? ' ' + cls : '') }, h('span', {}, label), input);
+}
+function buildRow(row) {
+  const btn = h('button', { type: 'button', class: 'approve' }, 'Approve');
+  const val = h('div', { class: 'aval' });
+  if (row.eds) val.append(h('div', { class: 'eds' }, ...row.eds.map(editor)));
+  const txt = h('div', { class: 'txt' }), notes = h('div', {});
+  val.append(txt, notes);
+  const el = h('div', { class: 'arow' }, h('div', { class: 'alabel' }, row.label, row.small ? h('small', {}, row.small) : null, h('small', { class: 'src' })), val, btn);
+  btn.addEventListener('click', () => { if (APPROVED[row.id] === snap(row)) delete APPROVED[row.id]; else APPROVED[row.id] = snap(row); update(); });
+  rowEls[row.id] = { el, btn, txt, notes, src: el.querySelector('.src') };
+  return el;
+}
+let current = null;
+function snap(row) {
+  const keys = (row.eds || []).map(e => e[0]);
+  return JSON.stringify([keys.map(k => V[k]), row.show && current && !current.errors.length ? row.show(current) : null]);
+}
+function update() {
+  const r = compute(); current = r;
+  let total = 0, done = 0;
+  for (const row of [...READ_ROWS, ...CALC_ROWS]) {
+    const R = rowEls[row.id], calc = CALC_ROWS.includes(row);
+    const visible = !calc || (!r.errors.length || row.id === 'serve') && (!row.when || row.when(r));
+    R.el.hidden = !visible; if (!visible) continue;
+    total++;
+    R.txt.replaceChildren(...(row.show && !r.errors.length ? row.show(r).map(s => h('div', {}, s)) : []));
+    R.notes.replaceChildren();
+    const keys = (row.eds || []).map(e => e[0]);
+    const srcs = [...new Set(keys.map(k => SRC[k]).filter(Boolean))];
+    R.src.textContent = calc ? '' : srcs.length ? 'from ' + srcs.join(', ') : 'not in the files';
+    for (const k of keys) if (CONF[k]) R.notes.append(h('div', { class: 'note warn' }, `The files disagree: ${CONF[k]}. Check the signed lease.`));
+    const missing = (row.req || []).filter(k => !String(V[k] ?? '').trim());
+    R.el.querySelectorAll('.ed').forEach(ed => ed.classList.toggle('missing', missing.includes(ed.querySelector('[data-key]')?.dataset.key)));
+    if (missing.length) R.notes.append(h('div', { class: 'note err' }, 'Not found in the files. Type it in.'));
+    if (row.id === 'pref' && suggestInfo.stepped) R.notes.append(h('div', { class: 'note warn' }, 'The PREF rider has stepped amounts. Enter the current preferential rent.'));
+    if (row.id === 'lease' && !V.curTerm) R.notes.append(h('div', { class: 'note warn' }, 'The files don\'t show which term the tenant chose. Pick it so the lease end and rents line up.'));
+    const ok = !missing.length && APPROVED[row.id] === snap(row);
+    if (APPROVED[row.id] && !ok) delete APPROVED[row.id];
+    R.el.classList.toggle('ok', ok);
+    R.btn.textContent = ok ? '✓ Approved' : 'Approve';
+    R.btn.disabled = !!missing.length || (calc && r.errors.length && row.id !== 'serve');
+    if (ok) done++;
+  }
+  $('#errors').replaceChildren(...r.errors.map(e => h('div', { class: 'msg err' }, e)));
+  $('#warns').replaceChildren(...(r.warns || []).map(w => h('div', { class: 'msg warn' }, w)));
+  const all = total > 0 && done === total && !r.errors.length;
+  $('#progress').textContent = `${done} of ${total} approved`;
+  $('#dl').disabled = !all;
+  $('#barinfo').textContent = r.errors.length ? 'Fix the items in red.' : all ? `Ready: ${r.base} RS, DHCR${r.hasPref ? ', PREF' : ''}` : `Approve each item to download (${done} of ${total}).`;
+}
+// When a current-lease value changes, re-derive the term-dependent suggestions
+let suggestInfo = {};
+function onCurTermChange() {
+  // re-pick lease end, legal and pref for the chosen term
+  const term = V.curTerm;
+  const r8 = docs.find(d => d.kind === 'rtp8')?.data, pf = docs.find(d => d.kind === 'pref')?.data;
+  if (!term) return;
+  const t = +term;
+  const end = r8?.['end' + t] || pf?.['end' + t], legal = r8?.['legal' + t] || pf?.['legal' + t], pref = r8?.['pref' + t] || pf?.['pref' + t];
+  if (end && !docs.find(d => d.kind === 'rider')?.data?.end) { V.leaseEnd = isoOf(end); SRC.leaseEnd = r8?.['end' + t] ? 'RTP-8' : 'PREF rider'; }
+  if (legal) { V.legal = money(legal); SRC.legal = r8?.['legal' + t] ? 'RTP-8 Column F' : 'PREF rider'; }
+  if (pref) { V.pref = money(pref); SRC.pref = r8?.['pref' + t] ? 'RTP-8 item 5' : 'PREF rider'; }
+  if (r8?.dep != null) V.deposit = money(r8.dep + (r8['add' + t] || 0));
+  buildSuite();
+}
+function buildSuite() {
+  for (const k of Object.keys(APPROVED)) delete APPROVED[k];
+  $('#readrows').replaceChildren(...READ_ROWS.map(buildRow));
+  $('#calcrows').replaceChildren(...CALC_ROWS.map(buildRow));
+  const termSel = document.querySelector('[data-key="curTerm"]');
+  termSel.addEventListener('change', () => { SRC.curTerm = 'picked by hand'; onCurTermChange(); });
+  $('#suite').hidden = false;
+  update();
+}
+
+// ---------- files in ----------
+function showDocs() {
+  const have = k => docs.find(d => d.kind === k);
+  const rows = Object.entries(KINDS).map(([k, label]) => {
+    const d = have(k);
+    return h('li', {}, h('span', { class: 'kind' + (d ? '' : ' miss') }, d ? '✓ ' + label : label), d ? h('b', { title: d.name }, d.name) : null, h('span', { class: 'what' }, d ? d.data.note : 'not added yet'));
+  });
+  for (const d of docs.filter(d => d.error || d.reading)) rows.push(h('li', {}, h('span', { class: 'kind miss' }, d.reading ? 'Reading…' : '✗'), h('b', { title: d.name }, d.name), h('span', { class: 'what' + (d.error ? ' err' : '') }, d.error || '')));
+  $('#docs').replaceChildren(...rows);
+  $('#clear').hidden = !docs.length;
+}
+async function addDocs(files) {
+  for (const file of files) {
+    const d = { name: file.name, reading: true };
+    docs.push(d); showDocs();
+    try { Object.assign(d, await readDoc(file)); } catch (e) { d.error = 'Couldn\'t read this file: ' + e.message; }
+    d.reading = false;
+    if (d.kind) docs = docs.filter(x => x === d || x.kind !== d.kind);   // newest file of each kind wins
+    showDocs();
+  }
+  if (docs.some(d => d.kind)) { suggestInfo = suggest(); buildSuite(); }
+}
+const drop = $('#drop'), picker = $('#picker');
+drop.addEventListener('click', () => picker.click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); picker.click(); } });
+picker.addEventListener('change', () => { addDocs([...picker.files]); picker.value = ''; });
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addDocs([...e.dataTransfer.files]); });
+$('#clear').addEventListener('click', () => { docs = []; showDocs(); $('#suite').hidden = true; $('#dl').disabled = true; $('#barinfo').textContent = 'Drop the current term\'s 3 files to start.'; $('#status').textContent = ''; });
+
+// ---------- files out ----------
+async function fillPdf(b64, values) {
+  const doc = await PDFDocument.load(b64bytes(b64));
+  const form = doc.getForm();
+  for (const [name, v] of Object.entries(values)) {
+    const f = form.getFieldMaybe(name);
+    if (!f) throw new Error(`Form field "${name}" not found. The DHCR form may have changed.`);
+    if (typeof v === 'boolean') { v ? f.check() : f.uncheck(); } else f.setText(v);
+  }
+  return doc.save();
+}
+const amt = c => c ? money(c) : '';
+function rtp8Values(r) {
+  const s = new Date(r.serve), e = new Date(r.curEnd);
+  return {
+    'Dated': `${MONTHS[s.getUTCMonth()]} ${s.getUTCDate()}`, 'year': String(s.getUTCFullYear()).slice(2),
+    'Tenants Names and Address 1': V.tenants, 'Tenants Names and Address 2': `${V.street}, Apt ${V.apt}`,
+    'Tenants Names and Address 3': V.city, 'Tenants Names and Address 4': '',
+    'Owners Agents Name and Address 1': V.own1, 'Owners Agents Name and Address 2': V.own2,
+    'Owners Agents Name and Address 3': V.own3, 'Owners Agents Name and Address 4': V.own4,
+    'month': String(e.getUTCMonth() + 1).padStart(2, '0'), 'day': String(e.getUTCDate()).padStart(2, '0'), 'year2': String(e.getUTCFullYear()),
+    'Check Box13': r.rateUnknown,                                   // Column C: rate unknown
+    'legal rent': money(r.legal),
+    '1 year guideline increase': pct(r.ord.r1), 'minimum $ amount1': money(r.inc1),
+    '2 year guideline increase': pct(r.ord.r2), 'minimum $ amount2': money(r.inc2),
+    'guideline supplement1': '', 'guideline supplement2': '', 'lawful rent increase1': '', 'lawful rent increase2': '',
+    'new legal rent1': money(r.new1), 'new legal rent2': money(r.new2),
+    'Check Box14': r.hasPref,                                        // Column F: different rent, see item 5
+    'Current Deposit': r.hasDep ? money(r.dep) : '',
+    'Additional Deposit Required  1 year lease': r.hasDep ? money(r.add1) : '',
+    'Additional Deposit Required  2 year lease': r.hasDep ? money(r.add2) : '',
+    'air conditioner charges': amt(r.ac), 'appliance charges': amt(r.appl), '421a (2.2%)': amt(r.t421),
+    'Other1': V.othDesc, 'Other2': amt(r.oth), 'Total separate charges': money(r.sep),
+    '1 year lease': r.hasPref ? money(r.p1) : '', '2 year lease': r.hasPref ? money(r.p2) : '',
+    'Check Box1': r.hasPref, 'Check Box2': false,                    // item 5: agreement attached yes / no
+    'for a 1 year renewal': money(r.p1), 'for a 2 year renewal': money(r.p2), 'total separate charges': money(r.sep),
+    'total monthly payment for 1 year renewal': money(r.tot1), 'total monthly payment for 2 year renewal': money(r.tot2),
+    'This renewal lease shall commence on': mdy(r.start), 'date2': mdy(r.end1), 'date3': mdy(r.end2),
+    'reduced monthly rent': amt(r.scrie),
+    'Check Box4': V.spr === 'Yes', 'Check Box3': V.spr === 'No',     // item 10: does / does not
+    'date4': V.spr === 'Yes' ? V.sprDate : ''
+    // Part B (tenant's response) and the signature dates stay blank.
+  };
+}
+function riderValues(r) {
+  return {
+    'Lease Rider for the housing accommodation 1': `${V.street}, Apt ${V.apt}`,
+    'Lease Rider for the housing accommodation 2': V.city,
+    'Lease Start Date': mdy(r.start),
+    'Lease End Date': V.newTerm === '1' ? mdy(r.end1) : V.newTerm === '2' ? mdy(r.end2) : '',
+    'Lease Dated': '',
+    'Print Name of Tenants': V.tenants,
+    'Print Name of Owner or Owners Agent': V.own1
+  };
+}
+// PREF rider: fill the Word template's placeholders and zip it back up (stored, no compression)
+const xmlEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function prefDocx(r) {
+  const rep = {
+    START: mdy(r.start), OWNER_CAPS: V.own1.toUpperCase(), BUILDING_FULL: `${V.street}, ${V.city}`,
+    TENANTS_CAPS: V.tenants.toUpperCase(), APT: V.apt,
+    LEGAL1: usd(r.new1), END1: mdy(r.end1), LEGAL2: usd(r.new2), END2: mdy(r.end2), PREF1: usd(r.p1), PREF2: usd(r.p2)
+  };
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  return zipStore(FORMS.prefDocx.map(([name, b64]) => {
+    let data = b64bytes(b64);
+    if (name === 'word/document.xml') {
+      const xml = dec.decode(data).replace(/\{\{([A-Z0-9_]+)\}\}/g, (m, k) => k in rep ? xmlEsc(rep[k]) : m);
+      if (/\{\{[A-Z0-9_]+\}\}/.test(xml)) throw new Error('The PREF template has an unfilled placeholder.');
+      data = enc.encode(xml);
+    }
+    return [name, data];
+  }));
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(d) { let c = 0xFFFFFFFF; for (let i = 0; i < d.length; i++) c = CRC[(c ^ d[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], central = [];
+  let off = 0;
+  for (const [name, data] of files) {
+    const nm = enc.encode(name), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(12, 0x21, true);   // date 1980-01-01
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true);
+    parts.push(new Uint8Array(lh.buffer), nm, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(14, 0x21, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+    ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nm);
+    off += 30 + nm.length + data.length;
+  }
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, central.reduce((s, p) => s + p.length, 0), true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+async function makeFiles() {
+  const r = compute();
+  if (r.errors.length) throw new Error(r.errors[0]);
+  const out = [
+    [new Blob([await fillPdf(FORMS.rtp8, rtp8Values(r))], { type: 'application/pdf' }), `${r.base} RS.pdf`],
+    [new Blob([await fillPdf(FORMS.ralr1, riderValues(r))], { type: 'application/pdf' }), `${r.base} DHCR.pdf`]];
+  if (r.hasPref) out.push([prefDocx(r), `${r.base} PREF.docx`]);
+  return out;
+}
+function download(blob, name) {
+  const a = h('a', { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+$('#dl').addEventListener('click', async () => {
+  const st = $('#status'); st.className = ''; st.textContent = 'Filling forms…';
+  try {
+    const files = await makeFiles();
+    for (const [blob, name] of files) download(blob, name);
+    st.textContent = 'Downloaded ' + files.map(f => f[1]).join(', ') + (current.hasPref ? '' : '. No PREF rider, since there\'s no preferential rent.');
+  } catch (e) { st.className = 'err'; st.textContent = e.message; }
+});
+
+showDocs();
+window.__renew = { addDocs, compute, makeFiles, V, APPROVED, rtp8Values, riderValues, fillPdf, prefDocx, FORMS, docs: () => docs, update };   // for testing from the console
+</script>
+</body>
+</html>

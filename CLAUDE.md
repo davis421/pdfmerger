@@ -20,6 +20,24 @@ explain changes in plain language.
   ("Applicant Information Last, First"). If those layouts change, update the regexes there.
 - Images: EXIF orientation is applied, plus a manual `turn`. Pages are US Letter with an 18pt margin.
 
+## RS Renewal Forms (`src/renew.html` → `docs/renew.html`)
+- Flow: drop the current term's RTP-8, DHCR rider and PREF rider → `readDoc` reads them in the browser
+  (pdf.js field values, or text by position on the blank RTP-8 for older/flattened copies; .docx via
+  DecompressionStream) → `suggest` picks values and flags disagreements → user approves every row
+  (approval is tied to the exact value; any change unapproves) → download 3 files. No AI service, no storage.
+- RGB orders are the `RGB` table in the page; add the new order each June and rebuild.
+- Fills DHCR RTP-8 (06/26) and RA-LR1 (06/26) with pdf-lib by field name (`rtp8Values`, `riderValues`);
+  fields stay editable. Checkbox meanings: Check Box13 = Column C rate unknown, Check Box14 = Column F
+  different rent, Check Box1/2 = item 5 agreement Yes/No, Check Box4/3 = item 10 sprinkler does/does not.
+  Part B and signature dates are left blank. A new DHCR revision means re-checking these names.
+- Money is integer cents and rates are parts per 100,000 so rounding is exact (half-up to the cent).
+  Pref = current pref × (1 + RGB %), capped at the new legal rent (HSTPA).
+- Offers can't be dated before today or more than 150 days before the lease ends; late offers warn.
+- PREF rider: `vendor/forms/pref-rider-template.docx` has `{{PLACEHOLDERS}}`; `build.ps1` embeds its zip
+  entries and the page re-zips them (stored) after replacing text in `word/document.xml`.
+- No tenant data is built into the page and nothing is saved (no localStorage). Test with synthetic
+  forms made from `FORMS` via `window.__renew.fillPdf`, never real tenant files.
+
 ## Testing
 - Browser file:// access may be blocked in the preview pane; serve the folder over localhost
   (e.g. a small PowerShell HttpListener) and drive `window.__merger` (addFiles, build, state, goPages)
