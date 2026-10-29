@@ -30,6 +30,14 @@ rent rider for a rent-stabilized apartment. Open it from the link at the top of 
 
 The RGB rates are built into the page (`RGB` in `src/renew.html`). Each June, add the new order and
 rebuild. Until then, renewals starting after the last order are offered with the "rate unknown" box checked.
+
+**Second-step (split) increases.** Some orders raise the rent in two steps, such as Order #55's 2-year lease:
+2.75% for the first year, then 3.2% on top of the first-year rent. Add the step as the last entry of the order's
+row, e.g. `[2, 12, '3.2']` (2-year lease, after 12 months, 3.2%). The RGB rates item in the approval list fills
+it in automatically, and a step can also be added or changed there by hand. When there's a step:
+- The RTP-8 boxes show the first-step rents, and a signed addendum page listing both steps is added to the RS file.
+- The PREF rider states both amounts.
+- Next term, the page reads the second-step rent back as the current rent.
 The blank forms are DHCR's June 2026 versions; when DHCR revises a form, replace the file in
 `vendor/forms/` and check the field names still match.
 

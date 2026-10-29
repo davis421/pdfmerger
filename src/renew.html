@@ -166,17 +166,19 @@ const { PDFDocument } = PDFLib;
 const $ = s => document.querySelector(s);
 
 // ---------- NYC Rent Guidelines Board orders: add the new order each June ----------
-// [order, leases starting from, through, 1-year %, 2-year %, second-step % (split orders) ]
+// [order, leases starting from, through, 1-year %, 2-year %, second step if the order splits: [lease term, starts after N months, %]]
+// A second step is applied to the first-step rent (Order #55: "above the amount lawfully charged in the first year").
+// Source: RGB Apartment Orders chart, rentguidelinesboard.cityofnewyork.us
 const RGB = [
-  ['50', '2018-10-01', '2019-09-30', '1.5', '2.5', ''],
-  ['51', '2019-10-01', '2020-09-30', '1.5', '2.5', ''],
-  ['52', '2020-10-01', '2021-09-30', '0', '0', '1'],
-  ['53', '2021-10-01', '2022-09-30', '0', '2.5', '1.5'],
-  ['54', '2022-10-01', '2023-09-30', '3.25', '5', ''],
-  ['55', '2023-10-01', '2024-09-30', '3', '2.75', '3.2'],
-  ['56', '2024-10-01', '2025-09-30', '2.75', '2.75', '3.2'],
-  ['57', '2025-10-01', '2026-09-30', '3', '4.5', ''],
-  ['58', '2026-10-01', '2027-09-30', '0', '0', '']
+  ['50', '2018-10-01', '2019-09-30', '1.5', '2.5'],
+  ['51', '2019-10-01', '2020-09-30', '1.5', '2.5'],
+  ['52', '2020-10-01', '2021-09-30', '0', '0', [2, 12, '1']],      // 2-year: 0% 1st year, 1% 2nd year
+  ['53', '2021-10-01', '2022-09-30', '0', '2.5', [1, 6, '1.5']],   // 1-year: 0% first 6 months, 1.5% last 6 months
+  ['54', '2022-10-01', '2023-09-30', '3.25', '5'],
+  ['55', '2023-10-01', '2024-09-30', '3', '2.75', [2, 12, '3.2']], // 2-year: 2.75% 1st year, 3.2% 2nd year
+  ['56', '2024-10-01', '2025-09-30', '2.75', '5.25'],
+  ['57', '2025-10-01', '2026-09-30', '3', '4.5'],
+  ['58', '2026-10-01', '2027-09-30', '0', '0']
 ];
 
 // ---------- money and dates (integer cents and UTC days, so rounding is exact) ----------
@@ -202,6 +204,7 @@ const DAY = 86400000;
 function day(iso) { if (!iso) return null; const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d); }
 const addDays = (t, n) => t + n * DAY;
 function addYears(t, n) { const d = new Date(t); return Date.UTC(d.getUTCFullYear() + n, d.getUTCMonth(), d.getUTCDate()); }
+function addMonths(t, n) { const d = new Date(t); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, d.getUTCDate()); }
 function mdy(t) { const d = new Date(t); return `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}/${d.getUTCFullYear()}`; }
 const isoOf = t => new Date(t).toISOString().slice(0, 10);
 function todayUTC() { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); }
@@ -292,13 +295,15 @@ async function rtp8Get(info) {
   }
   return g;
 }
-function parseRtp8(g) {
+// A rent box with two amounts ("3,296.28 / 3,401.76", a hand-written step) means the later one was in effect at the end of the term
+const rentOf = s => amtOf(String(s ?? '').split(/\/|\bthen\b/i).pop());
+function parseRtp8(g, text = '') {
   const d = {
     term: g['Check Box6'] === true ? 2 : g['Check Box5'] === true ? 1 : null,
     start: parseDate(g['This renewal lease shall commence on']),
     end1: parseDate(g['date2']), end2: parseDate(g['date3']),
-    legal1: amtOf(g['new legal rent1']), legal2: amtOf(g['new legal rent2']),
-    pref1: amtOf(g['1 year lease']), pref2: amtOf(g['2 year lease']),
+    legal1: rentOf(g['new legal rent1']), legal2: rentOf(g['new legal rent2']),
+    pref1: rentOf(g['1 year lease']), pref2: rentOf(g['2 year lease']),
     dep: amtOf(g['Current Deposit']), add1: amtOf(g['Additional Deposit Required  1 year lease']), add2: amtOf(g['Additional Deposit Required  2 year lease']),
     tenants: (g['Tenants Names and Address 1'] || '').trim(),
     street: streetOf(g['Tenants Names and Address 2']), apt: aptOf(g['Tenants Names and Address 2']), city: (g['Tenants Names and Address 3'] || '').trim(),
@@ -307,10 +312,17 @@ function parseRtp8(g) {
     othDesc: (g['Other1'] || '').trim(), oth: amtOf(g['Other2']), scrie: amtOf(g['reduced monthly rent']),
     spr: g['Check Box4'] === true ? 'Yes' : g['Check Box3'] === true ? 'No' : '', sprDate: (g['date4'] || '').trim()
   };
-  const r1 = amtOf(g['for a 1 year renewal']), r2 = amtOf(g['for a 2 year renewal']);   // item 6 below Column F also means a pref
+  const r1 = rentOf(g['for a 1 year renewal']), r2 = rentOf(g['for a 2 year renewal']);   // item 6 below Column F also means a pref
   if (!d.pref1 && r1 && d.legal1 && r1 < d.legal1) d.pref1 = r1;
   if (!d.pref2 && r2 && d.legal2 && r2 < d.legal2) d.pref2 = r2;
-  d.note = `renewal starting ${d.start ? mdy(d.start) : '?'}` + (d.term ? `, tenant chose ${d.term} year${d.term > 1 ? 's' : ''}` : ', tenant\'s choice not marked');
+  // Second-step addendum (added by this page for split RGB orders): the step amounts are the rents at the end of the term
+  const steps = [...text.replace(/\s+/g, ' ').matchAll(/([12])-year lease, months (\d+)-\d+ \([^)]*\): legal rent \$([\d,]+\.\d{2})(?:; preferential rent \$([\d,]+\.\d{2}))?/gi)];
+  for (const m of steps) if (+m[2] > 1) {
+    d['legal' + m[1]] = amtOf(m[3]);
+    if (m[4]) d['pref' + m[1]] = amtOf(m[4]);
+    d.stepRead = true; d.stepTerm = +m[1];
+  }
+  d.note = `renewal starting ${d.start ? mdy(d.start) : '?'}` + (d.term ? `, tenant chose ${d.term} year${d.term > 1 ? 's' : ''}` : ', tenant\'s choice not marked') + (d.stepRead ? ', second-step rents from the addendum' : '');
   return d;
 }
 function parseRider(info) {
@@ -326,11 +338,13 @@ function parseRider(info) {
 }
 function parsePref(text) {
   const t = text.replace(/_+/g, '').replace(/\s+/g, ' '), n = '\\$\\s*([\\d,]+\\.\\d{2})';
-  const L = t.match(new RegExp(`legal regulated rent.{0,200}?${n}\\s*for a 1-year Lease term which expires on\\s*([\\d/]+)\\s*or\\s*${n}\\s*for a 2-year Lease term which expires on\\s*([\\d/]+)`, 'i'));
-  const P = t.match(new RegExp(`rent of\\s*${n}\\s*per month in full payment and satisfaction of rent for a 1-year Lease term,?\\s*or\\s*${n}\\s*per month`, 'i'));
+  // an amount, or a stepped pair like "$3,296.28 (first year) and $3,401.76 (second year, from 12/01/2028)"; the later one is current
+  const s = `${n}(?:\\s*\\([^)]*\\)\\s*and\\s*${n}\\s*\\([^)]*\\))?`, last = (a, b) => amtOf(b || a);
+  const L = t.match(new RegExp(`legal regulated rent.{0,200}?${s}\\s*for a 1-year Lease term which expires on\\s*([\\d/]+)\\s*or\\s*${s}\\s*for a 2-year Lease term which expires on\\s*([\\d/]+)`, 'i'));
+  const P = t.match(new RegExp(`rent of\\s*${s}\\s*per month in full payment and satisfaction of rent for a 1-year Lease term,?\\s*or\\s*${s}\\s*per month`, 'i'));
   const d = {
-    legal1: L && amtOf(L[1]), end1: L && parseDate(L[2]), legal2: L && amtOf(L[3]), end2: L && parseDate(L[4]),
-    pref1: P && amtOf(P[1]), pref2: P && amtOf(P[2]),
+    legal1: L && last(L[1], L[2]), end1: L && parseDate(L[3]), legal2: L && last(L[4], L[5]), end2: L && parseDate(L[6]),
+    pref1: P && last(P[1], P[2]), pref2: P && last(P[3], P[4]),
     tenants: ((t.match(/BUILDING\W*\)\s*AND\s+(.+?)\s*\(\W*TENANTS?\W*\)/i) || [])[1] || '').trim(),
     apt: (t.match(/APARTMENT\s+([A-Z0-9-]+)\s+AT THE BUILDING/i) || [])[1] || '',
     stepped: !P && /preferential.{0,40}rent of/i.test(t)
@@ -347,7 +361,7 @@ async function readDoc(file) {
   }
   const info = await pdfInfo(bytes);
   // the RTP-8's instructions mention the lease rider, so check for the RTP-8 first
-  if ('new legal rent1' in info.fields || /OFFER TO TENANT TO RENEW/i.test(info.text)) return { kind: 'rtp8', data: parseRtp8(await rtp8Get(info)) };
+  if ('new legal rent1' in info.fields || /OFFER TO TENANT TO RENEW/i.test(info.text)) return { kind: 'rtp8', data: parseRtp8(await rtp8Get(info), info.text) };
   if ('Lease Start Date' in info.fields || /LEASE Rider For Rent Stabilized/i.test(info.text)) return { kind: 'rider', data: parseRider(info) };
   if (/PREFERENTIAL RENT RIDER/i.test(info.text)) return { kind: 'pref', data: parsePref(info.text) };
   if (!info.text.trim()) return { error: 'No readable text, probably a scan. Its details will need to be typed in below.' };
@@ -381,14 +395,16 @@ function suggest() {
   for (let i = 0; i < 4; i++) { V['own' + (i + 1)] = r8?.own[i] || (i === 0 ? rd?.owner || '' : ''); SRC['own' + (i + 1)] = r8?.own[i] ? 'RTP-8' : rd?.owner && i === 0 ? 'DHCR rider' : ''; }
   pick('leaseStart', [[rd?.start, 'DHCR rider'], [r8?.start, 'RTP-8']], isoOf);
   pick('leaseEnd', [[rd?.end, 'DHCR rider'], [bt(r8, 'end'), 'RTP-8'], [bt(pf, 'end'), 'PREF rider']], isoOf);
-  pick('legal', [[bt(r8, 'legal'), 'RTP-8 Column F'], [bt(pf, 'legal'), 'PREF rider']], money);
-  pick('pref', [[bt(r8, 'pref'), 'RTP-8 item 5'], [bt(pf, 'pref'), 'PREF rider']], money);
+  const stepped = r8?.stepTerm && r8.stepTerm === term;
+  pick('legal', [[bt(r8, 'legal'), stepped ? 'RTP-8 second-step addendum' : 'RTP-8 Column F'], [bt(pf, 'legal'), 'PREF rider']], money);
+  pick('pref', [[bt(r8, 'pref'), stepped ? 'RTP-8 second-step addendum' : 'RTP-8 item 5'], [bt(pf, 'pref'), 'PREF rider']], money);
   V.deposit = r8?.dep != null ? money(r8.dep + (bt(r8, 'add') || 0)) : '';
   SRC.deposit = r8?.dep != null ? (bt(r8, 'add') ? 'RTP-8 deposit + additional asked' : 'RTP-8 deposit') : '';
   for (const k of ['ac', 'appl', 't421', 'oth', 'scrie']) { V[k] = r8?.[k] ? money(r8[k]) : ''; SRC[k] = r8 ? 'RTP-8' : ''; }
   V.othDesc = r8?.othDesc || '';
   V.spr = r8?.spr || ''; V.sprDate = r8?.sprDate || ''; SRC.spr = r8 ? 'RTP-8 item 10' : '';
   V.serve = isoOf(todayUTC()); V.newTerm = ''; V.raiseDep = false;
+  V.stepTerm = ''; V.stepMonths = ''; V.stepPct = ''; V.stepOrder = null;   // second step: filled from the RGB order in compute()
   return { stepped: pf?.stepped, needTerm: !term && !!(r8 || pf) };
 }
 
@@ -414,13 +430,12 @@ function compute() {
   }
   const end1 = addDays(addYears(start, 1), -1), end2 = addDays(addYears(start, 2), -1);
 
-  const orders = RGB.map(r => ({ n: r[0], from: day(r[1]), to: day(r[2]), r1: rateP(r[3]), r2: rateP(r[4]), step: rateP(r[5]) }));
+  const orders = RGB.map(r => ({ n: r[0], from: day(r[1]), to: day(r[2]), r1: rateP(r[3]), r2: rateP(r[4]), step: r[5] }));
   let ord = orders.find(o => o.from <= start && start <= o.to), rateUnknown = false;
   if (!ord) {
     ord = orders[orders.length - 1]; rateUnknown = true;
     warns.push(`The RGB hasn't set rates for leases starting ${mdy(start)} yet. Using Order #${ord.n} and checking the "rate unknown" box in Column C, so the rent adjusts when the new order comes out.`);
   }
-  if (ord.step) warns.push(`Order #${ord.n} has a second-step rate. The forms show the first step only; add the step by hand.`);
   const inc1 = mulRate(legal, ord.r1), inc2 = mulRate(legal, ord.r2);
   const new1 = legal + inc1, new2 = legal + inc2;
   let p1 = new1, p2 = new2;
@@ -430,6 +445,28 @@ function compute() {
     if (pref >= legal) warns.push('The preferential rent isn\'t below the legal rent. Check both.');
   }
   const sep = ac + appl + t421 + oth, tot1 = p1 + sep, tot2 = p2 + sep;
+
+  // Second step: the order's own split is filled in whenever the order changes; it can also be added or changed by hand.
+  if (V.stepOrder !== ord.n) {
+    const s = ord.step || ['', '', ''];
+    V.stepTerm = String(s[0]); V.stepMonths = String(s[1]); V.stepPct = s[2]; V.stepOrder = ord.n;
+  }
+  let step = null;
+  if (V.stepTerm) {
+    const t = +V.stepTerm, months = Number(V.stepMonths), sp = /^\d{1,2}(\.\d{1,3})?$/.test(V.stepPct) ? rateP(V.stepPct) : NaN;
+    if (!Number.isInteger(months) || months < 1 || months >= t * 12) errors.push(`The second step has to start after 1 to ${t * 12 - 1} months of the ${t}-year lease.`);
+    else if (Number.isNaN(sp)) errors.push(`"${V.stepPct}" isn't a percentage for the second step.`);
+    else {
+      const first = t === 1 ? new1 : new2, firstP = t === 1 ? p1 : p2;
+      const inc = mulRate(first, sp), legalS = first + inc;   // applied to the first-step rent
+      const prefS = hasPref ? Math.min(legalS, mulRate(firstP, 100000 + sp)) : legalS;
+      step = { term: t, months, rate: sp, from: addMonths(start, months), first, firstP, inc, legal: legalS, pref: prefS, tot: prefS + sep };
+    }
+    const s = ord.step;
+    if (!s) warns.push(`Order #${ord.n} has no second step. Only add one if the order calls for it.`);
+    else if (String(s[0]) !== V.stepTerm || String(s[1]) !== V.stepMonths || rateP(s[2]) !== (step?.rate ?? -1)) warns.push(`This second step is different from Order #${ord.n}'s (${s[2]}% after ${s[1]} months of the ${s[0]}-year lease). Check the order.`);
+  } else if (ord.step) warns.push(`Order #${ord.n} has a second step (${ord.step[2]}% after ${ord.step[1]} months of the ${ord.step[0]}-year lease), but it's turned off.`);
+  if (errors.length) return { errors, warns, ord };   // ord keeps the RGB row (where the step is edited) on screen
   let add1 = 0, add2 = 0;
   if (hasDep) {
     if (V.raiseDep) { add1 = Math.max(0, p1 - dep); add2 = Math.max(0, p2 - dep); }
@@ -439,7 +476,7 @@ function compute() {
   const bldg = (String(V.street).match(/^\s*(\d+)/) || [])[1];   // file names like "512-2C 2027-12-01 RS.pdf"
   const base = `${bldg ? bldg + '-' : ''}${V.apt || 'Apt'} ${isoOf(start)}`;
   return { errors, warns, serve, curEnd, start, earliest, latest, end1, end2, ord, rateUnknown, legal, pref, hasPref, dep, hasDep,
-    inc1, inc2, new1, new2, p1, p2, ac, appl, t421, oth, sep, tot1, tot2, add1, add2, scrie, base };
+    inc1, inc2, new1, new2, p1, p2, ac, appl, t421, oth, sep, tot1, tot2, add1, add2, scrie, base, step };
 }
 
 // ---------- approval suite ----------
@@ -460,10 +497,15 @@ const READ_ROWS = [
 const CALC_ROWS = [
   { id: 'serve', label: 'Service date', small: 'date the RTP-8 goes to the tenant', eds: [['serve', 'Date', 'date']] },
   { id: 'dates', label: 'Next term', show: r => [`Starts ${mdy(r.start)}`, `1-year ends ${mdy(r.end1)} · 2-year ends ${mdy(r.end2)}`, `Serve between ${mdy(r.earliest)} and ${mdy(r.latest)}`] },
-  { id: 'rgb', label: 'RGB rates', show: r => [`Order #${r.ord.n}: 1-year ${pct(r.ord.r1)}%, 2-year ${pct(r.ord.r2)}%` + (r.rateUnknown ? ' (new order not out yet)' : '')] },
-  { id: 'legalNew', label: 'New legal rent', small: 'RTP-8 Column F', show: r => [`1-year ${usd(r.new1)}  (${usd(r.legal)} + ${usd(r.inc1)})`, `2-year ${usd(r.new2)}  (${usd(r.legal)} + ${usd(r.inc2)})`] },
-  { id: 'prefNew', label: 'New preferential rent', small: 'RTP-8 item 5 and PREF rider', when: r => r.hasPref, show: r => [`1-year ${usd(r.p1)}`, `2-year ${usd(r.p2)}`, `${usd(r.pref)} + RGB increase, capped at the new legal rent`] },
-  { id: 'pay', label: 'Monthly payment', small: 'RTP-8 item 6', show: r => [`1-year ${usd(r.tot1)} · 2-year ${usd(r.tot2)}`, r.sep ? `includes ${usd(r.sep)} separate charges` : 'no separate charges'] },
+  { id: 'rgb', label: 'RGB rates', small: 'second step only if the order splits a term', eds: [['stepTerm', 'Second step', 'stepterm'], ['stepMonths', 'Starts after (months)', 'text'], ['stepPct', 'Step %', 'text']],
+    show: r => [`Order #${r.ord.n}: 1-year ${pct(r.ord.r1)}%, 2-year ${pct(r.ord.r2)}%` + (r.rateUnknown ? ' (new order not out yet)' : ''),
+      r.step ? `Then ${pct(r.step.rate)}% on the ${r.step.term}-year lease from month ${r.step.months + 1} (${mdy(r.step.from)}), applied to the first-step rent` : 'No second step'] },
+  { id: 'legalNew', label: 'New legal rent', small: 'RTP-8 Column F', show: r => [`1-year ${usd(r.new1)}  (${usd(r.legal)} + ${usd(r.inc1)})`, `2-year ${usd(r.new2)}  (${usd(r.legal)} + ${usd(r.inc2)})`,
+    r.step && `${r.step.term}-year from ${mdy(r.step.from)}: ${usd(r.step.legal)}  (${usd(r.step.first)} + ${usd(r.step.inc)})`] },
+  { id: 'prefNew', label: 'New preferential rent', small: 'RTP-8 item 5 and PREF rider', when: r => r.hasPref, show: r => [`1-year ${usd(r.p1)}`, `2-year ${usd(r.p2)}`,
+    r.step && `${r.step.term}-year from ${mdy(r.step.from)}: ${usd(r.step.pref)}`, `${usd(r.pref)} + RGB increase, capped at the new legal rent`] },
+  { id: 'pay', label: 'Monthly payment', small: 'RTP-8 item 6', show: r => [`1-year ${usd(r.tot1)} · 2-year ${usd(r.tot2)}`, r.step && `${r.step.term}-year from ${mdy(r.step.from)}: ${usd(r.step.tot)}`,
+    r.sep ? `includes ${usd(r.sep)} separate charges` : 'no separate charges', r.step && 'The RTP-8 boxes show the first-step amounts. A second-step addendum page is added to the RTP-8.'] },
   { id: 'depNew', label: 'Additional deposit', small: 'RTP-8 item 3', when: r => r.hasDep, eds: [['raiseDep', 'Ask for more deposit to match the new rent', 'check']], show: r => [`1-year ${usd(r.add1)} · 2-year ${usd(r.add2)}`] },
   { id: 'riderTerm', label: 'Rider lease end date', small: 'DHCR rider Section 2', eds: [['newTerm', 'Fill in', 'newterm']], show: r => [V.newTerm === '1' ? mdy(r.end1) : V.newTerm === '2' ? mdy(r.end2) : 'Left blank until the tenant picks a term'] }
 ];
@@ -475,8 +517,9 @@ function editor([key, label, type, cls]) {
     input = h('input', { type: 'checkbox', onchange: changed }); input.checked = !!V[key];
     return h('label', { class: 'chk' }, input, label);
   }
-  if (type === 'yesno' || type === 'term' || type === 'newterm') {
-    const opts = { yesno: [['', 'Not answered'], ['Yes', 'Yes'], ['No', 'No']], term: [['', 'Unknown'], ['1', '1 year'], ['2', '2 years']], newterm: [['', 'Leave blank'], ['1', '1-year end date'], ['2', '2-year end date']] }[type];
+  if (type === 'yesno' || type === 'term' || type === 'newterm' || type === 'stepterm') {
+    const opts = { yesno: [['', 'Not answered'], ['Yes', 'Yes'], ['No', 'No']], term: [['', 'Unknown'], ['1', '1 year'], ['2', '2 years']], newterm: [['', 'Leave blank'], ['1', '1-year end date'], ['2', '2-year end date']],
+      stepterm: [['', 'None'], ['1', 'On the 1-year lease'], ['2', 'On the 2-year lease']] }[type];
     input = h('select', { onchange: changed }, ...opts.map(([v, t]) => h('option', { value: v }, t)));
   } else input = h('input', { type: type === 'date' ? 'date' : 'text', inputmode: type === 'money' ? 'decimal' : null, placeholder: type === 'money' ? '0.00' : '', oninput: changed });
   input.value = V[key] ?? '';
@@ -501,13 +544,17 @@ function snap(row) {
 }
 function update() {
   const r = compute(); current = r;
+  // compute() can fill in values (the order's second step); show them in the inputs
+  for (const el of document.querySelectorAll('#suite [data-key]'))
+    if (el !== document.activeElement && el.type !== 'checkbox' && el.value !== String(V[el.dataset.key] ?? '')) el.value = V[el.dataset.key] ?? '';
+  for (const k of ['stepMonths', 'stepPct']) { const el = document.querySelector(`#suite [data-key="${k}"]`); if (el) el.closest('.ed').hidden = !V.stepTerm; }
   let total = 0, done = 0;
   for (const row of [...READ_ROWS, ...CALC_ROWS]) {
     const R = rowEls[row.id], calc = CALC_ROWS.includes(row);
-    const visible = !calc || (!r.errors.length || row.id === 'serve') && (!row.when || row.when(r));
+    const visible = !calc || (!r.errors.length || row.id === 'serve' || row.id === 'rgb' && r.ord) && (!row.when || row.when(r));
     R.el.hidden = !visible; if (!visible) continue;
     total++;
-    R.txt.replaceChildren(...(row.show && !r.errors.length ? row.show(r).map(s => h('div', {}, s)) : []));
+    R.txt.replaceChildren(...(row.show && !r.errors.length ? row.show(r).filter(Boolean).map(s => h('div', {}, s)) : []));
     R.notes.replaceChildren();
     const keys = (row.eds || []).map(e => e[0]);
     const srcs = [...new Set(keys.map(k => SRC[k]).filter(Boolean))];
@@ -542,8 +589,9 @@ function onCurTermChange() {
   const t = +term;
   const end = r8?.['end' + t] || pf?.['end' + t], legal = r8?.['legal' + t] || pf?.['legal' + t], pref = r8?.['pref' + t] || pf?.['pref' + t];
   if (end && !docs.find(d => d.kind === 'rider')?.data?.end) { V.leaseEnd = isoOf(end); SRC.leaseEnd = r8?.['end' + t] ? 'RTP-8' : 'PREF rider'; }
-  if (legal) { V.legal = money(legal); SRC.legal = r8?.['legal' + t] ? 'RTP-8 Column F' : 'PREF rider'; }
-  if (pref) { V.pref = money(pref); SRC.pref = r8?.['pref' + t] ? 'RTP-8 item 5' : 'PREF rider'; }
+  const stepped = r8?.stepTerm === t;
+  if (legal) { V.legal = money(legal); SRC.legal = r8?.['legal' + t] ? (stepped ? 'RTP-8 second-step addendum' : 'RTP-8 Column F') : 'PREF rider'; }
+  if (pref) { V.pref = money(pref); SRC.pref = r8?.['pref' + t] ? (stepped ? 'RTP-8 second-step addendum' : 'RTP-8 item 5') : 'PREF rider'; }
   if (r8?.dep != null) V.deposit = money(r8.dep + (r8['add' + t] || 0));
   buildSuite();
 }
@@ -589,7 +637,7 @@ drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('
 $('#clear').addEventListener('click', () => { docs = []; showDocs(); $('#suite').hidden = true; $('#dl').disabled = true; $('#barinfo').textContent = 'Drop the current term\'s 3 files to start.'; $('#status').textContent = ''; });
 
 // ---------- files out ----------
-async function fillPdf(b64, values) {
+async function fillPdf(b64, values, extra) {
   const doc = await PDFDocument.load(b64bytes(b64));
   const form = doc.getForm();
   for (const [name, v] of Object.entries(values)) {
@@ -597,7 +645,45 @@ async function fillPdf(b64, values) {
     if (!f) throw new Error(`Form field "${name}" not found. The DHCR form may have changed.`);
     if (typeof v === 'boolean') { v ? f.check() : f.uncheck(); } else f.setText(v);
   }
+  if (extra) await extra(doc);
   return doc.save();
+}
+// The RTP-8 has no boxes for a split increase, so the step goes on an addendum page after the form.
+// The "N-year lease, months a-b (...): legal rent $x" lines are read back by parseRtp8 next term.
+async function addStepPage(doc, r) {
+  const s = r.step, font = await doc.embedFont(PDFLib.StandardFonts.Helvetica), bold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  const page = doc.addPage([612, 792]), L = 54, W = 504;
+  let y = 738;
+  const text = (str, f = font, size = 10, gap = 4) => {
+    const words = str.split(' '); let line = '';
+    for (const w of words) {
+      const t = line ? line + ' ' + w : w;
+      if (f.widthOfTextAtSize(t, size) > W && line) { page.drawText(line, { x: L, y, size, font: f }); y -= size + gap; line = w; } else line = t;
+    }
+    if (line) { page.drawText(line, { x: L, y, size, font: f }); y -= size + gap; }
+  };
+  const first = s.term === 1 ? r.ord.r1 : r.ord.r2, end = s.term === 1 ? r.end1 : r.end2, total = s.term * 12;
+  const pref = (a) => r.hasPref ? `; preferential rent $${money(a)}` : '';
+  text('ADDENDUM TO RENEWAL LEASE FORM (RTP-8): SECOND-STEP RENT INCREASE', bold, 12, 10);
+  text(`Tenant(s): ${V.tenants}`);
+  text(`Premises: ${V.street}, Apt ${V.apt}, ${V.city}`);
+  text(`Owner/Agent: ${V.own1}`, font, 10, 12);
+  text(`NYC Rent Guidelines Board Order #${r.ord.n} sets the increase for a ${s.term}-year renewal lease in two steps: ${pct(first)}% for the first ${s.months} months, then ${pct(s.rate)}% above the rent lawfully charged in the first step, excluding any increases other than the first-step guideline increase.`, font, 10, 4);
+  y -= 8;
+  text(`If the tenant chooses the ${s.term}-year lease, the monthly rent is:`, bold);
+  y -= 2;
+  text(`${s.term}-year lease, months 1-${s.months} (${mdy(r.start)} to ${mdy(addDays(s.from, -1))}): legal rent $${money(s.first)}${pref(s.firstP)}; total monthly payment $${money(s.firstP + r.sep)}`);
+  text(`${s.term}-year lease, months ${s.months + 1}-${total} (${mdy(s.from)} to ${mdy(end)}): legal rent $${money(s.legal)}${pref(s.pref)}; total monthly payment $${money(s.tot)}`);
+  y -= 8;
+  text(`Column F, item 5 and item 6 of the Renewal Lease Form show the first-step amounts. The second-step amounts above take effect on ${mdy(s.from)}. This addendum is part of the renewal lease offer.`);
+  y -= 30;
+  for (const who of ['Owner/Agent', 'Tenant', 'Tenant']) {
+    page.drawLine({ start: { x: L, y }, end: { x: L + 260, y }, thickness: 0.6 });
+    page.drawLine({ start: { x: L + 300, y }, end: { x: L + 420, y }, thickness: 0.6 });
+    page.drawText(`${who} signature`, { x: L, y: y - 12, size: 8, font });
+    page.drawText('Date', { x: L + 300, y: y - 12, size: 8, font });
+    y -= 44;
+  }
 }
 const amt = c => c ? money(c) : '';
 function rtp8Values(r) {
@@ -645,11 +731,19 @@ function riderValues(r) {
 }
 // PREF rider: fill the Word template's placeholders and zip it back up (stored, no compression)
 const xmlEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// "$3,296.28 (first year) and $3,401.76 (second year, from 12/01/2028)" for the stepped term; parsePref reads this back
+function stepPair(r, t, a, b) {
+  const s = r.step;
+  if (!s || s.term !== t) return usd(a);
+  const yr = s.months === 12 && t === 2;
+  return `${usd(a)} (${yr ? 'first year' : `first ${s.months} months`}) and ${usd(b)} (${yr ? 'second year, ' : ''}from ${mdy(s.from)})`;
+}
 function prefDocx(r) {
   const rep = {
     START: mdy(r.start), OWNER_CAPS: V.own1.toUpperCase(), BUILDING_FULL: `${V.street}, ${V.city}`,
     TENANTS_CAPS: V.tenants.toUpperCase(), APT: V.apt,
-    LEGAL1: usd(r.new1), END1: mdy(r.end1), LEGAL2: usd(r.new2), END2: mdy(r.end2), PREF1: usd(r.p1), PREF2: usd(r.p2)
+    LEGAL1: stepPair(r, 1, r.new1, r.step?.legal), END1: mdy(r.end1), LEGAL2: stepPair(r, 2, r.new2, r.step?.legal), END2: mdy(r.end2),
+    PREF1: stepPair(r, 1, r.p1, r.step?.pref), PREF2: stepPair(r, 2, r.p2, r.step?.pref)
   };
   const enc = new TextEncoder(), dec = new TextDecoder();
   return zipStore(FORMS.prefDocx.map(([name, b64]) => {
@@ -689,7 +783,7 @@ async function makeFiles() {
   const r = compute();
   if (r.errors.length) throw new Error(r.errors[0]);
   const out = [
-    [new Blob([await fillPdf(FORMS.rtp8, rtp8Values(r))], { type: 'application/pdf' }), `${r.base} RS.pdf`],
+    [new Blob([await fillPdf(FORMS.rtp8, rtp8Values(r), r.step && (doc => addStepPage(doc, r)))], { type: 'application/pdf' }), `${r.base} RS.pdf`],
     [new Blob([await fillPdf(FORMS.ralr1, riderValues(r))], { type: 'application/pdf' }), `${r.base} DHCR.pdf`]];
   if (r.hasPref) out.push([prefDocx(r), `${r.base} PREF.docx`]);
   return out;

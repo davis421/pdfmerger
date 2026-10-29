@@ -25,7 +25,14 @@ explain changes in plain language.
   (pdf.js field values, or text by position on the blank RTP-8 for older/flattened copies; .docx via
   DecompressionStream) → `suggest` picks values and flags disagreements → user approves every row
   (approval is tied to the exact value; any change unapproves) → download 3 files. No AI service, no storage.
-- RGB orders are the `RGB` table in the page; add the new order each June and rebuild.
+- RGB orders are the `RGB` table in the page; add the new order each June and rebuild (check it against the
+  RGB's Apartment Orders chart). Split orders get a 6th entry `[lease term, starts after N months, %]`
+  (#52, #53, #55); the step is applied to the first-step rent. The RGB row in the approval suite fills the step
+  from the order and lets it be added or changed by hand (with a warning when it differs from the order).
+- The RTP-8 has no boxes for a step, so its boxes show first-step amounts and `addStepPage` appends an addendum
+  page. Its "N-year lease, months a-b (...): legal rent $x; preferential rent $y" lines, the PREF rider's
+  "$a (first year) and $b (second year, from date)" wording, and "a / b" in a rent box are read back next term
+  (the later amount is the current rent). Keep those formats in sync with `parseRtp8` / `parsePref`.
 - Fills DHCR RTP-8 (06/26) and RA-LR1 (06/26) with pdf-lib by field name (`rtp8Values`, `riderValues`);
   fields stay editable. Checkbox meanings: Check Box13 = Column C rate unknown, Check Box14 = Column F
   different rent, Check Box1/2 = item 5 agreement Yes/No, Check Box4/3 = item 10 sprinkler does/does not.
